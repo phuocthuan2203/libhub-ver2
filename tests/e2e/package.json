@@ -1,0 +1,26 @@
+{
+  "name": "libhub-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-End tests for LibHub application",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "setup": "mysql -u libhub_user -p < test-data-setup.sql"
+  },
+  "keywords": [
+    "e2e",
+    "playwright",
+    "testing"
+  ],
+  "author": "LibHub Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  },
+  "dependencies": {
+    "mysql2": "^3.6.5"
+  }
+}
