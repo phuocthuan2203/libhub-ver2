@@ -2,7 +2,8 @@
 
 ## Prerequisites
 - Docker and Docker Compose installed
-- Ports available: 3306, 5000, 5001, 5002, 5003, 8080
+- Ports available: 3306, 5000, 5001, 5002, 5003, 8080, 8500, 8600
+- Minimum 4GB RAM recommended for all containers
 
 ## Quick Start
 
@@ -18,7 +19,8 @@ Wait 30-60 seconds for all services to initialize.
 docker ps
 ```
 
-You should see 6 containers running:
+You should see 7 containers running:
+- libhub-consul (Consul service discovery)
 - libhub-mysql (healthy)
 - libhub-userservice
 - libhub-catalogservice
@@ -29,6 +31,7 @@ You should see 6 containers running:
 ### 3. Access the Application
 - **Frontend**: http://localhost:8080
 - **API Gateway**: http://localhost:5000
+- **Consul UI**: http://localhost:8500 (Service discovery dashboard)
 - **Swagger Docs**:
   - UserService: http://localhost:5002/swagger
   - CatalogService: http://localhost:5001/swagger
@@ -49,6 +52,16 @@ You should see 6 containers running:
 ### Test Data Persistence
 ```bash
 ./scripts/verify-persistence.sh
+```
+
+### Test Consul Service Discovery
+```bash
+./scripts/test-consul-discovery.sh
+```
+
+### Test Gateway Integration
+```bash
+./scripts/test-gateway-integration.sh
 ```
 
 ## Check Logs
@@ -88,29 +101,96 @@ docker exec libhub-mysql mysql -u libhub_user -pLibHub@Dev2025 \
 
 ## Management Commands
 
-### Stop All Services
+### Start Services
 ```bash
-docker compose down
-```
+# Start all services
+docker compose up -d
 
-### Restart a Service
-```bash
-docker compose restart userservice
-```
+# Start specific service
+docker compose up -d userservice
 
-### Rebuild and Restart
-```bash
+# Start with logs visible
+docker compose up
+
+# Start and rebuild
 docker compose up -d --build
 ```
 
-### View Service Status
+### Stop Services
 ```bash
-docker compose ps
+# Stop all services (keeps data)
+docker compose down
+
+# Stop specific service
+docker compose stop userservice
+
+# Stop and remove volumes (⚠️ Deletes all data)
+docker compose down -v
 ```
 
-### Remove All Data (⚠️ Destructive)
+### Restart Services
 ```bash
+# Restart all services
+docker compose restart
+
+# Restart specific service
+docker compose restart userservice
+
+# Restart with rebuild
+docker compose up -d --build --force-recreate
+```
+
+### Rebuild Services
+```bash
+# Rebuild all services
+docker compose build
+
+# Rebuild specific service
+docker compose build catalogservice
+
+# Rebuild without cache
+docker compose build --no-cache
+
+# Rebuild and start
+docker compose up -d --build
+```
+
+### View Status
+```bash
+# View running containers
+docker compose ps
+
+# View all containers (including stopped)
+docker compose ps -a
+
+# View resource usage
+docker stats
+```
+
+### Scale Services (Load Balancing)
+```bash
+# Scale userservice to 3 instances
+docker compose up -d --scale userservice=3
+
+# Scale catalogservice to 2 instances
+docker compose up -d --scale catalogservice=2
+
+# Note: Consul will automatically discover all instances
+```
+
+### Clean Up
+```bash
+# Remove stopped containers
+docker compose rm
+
+# Remove all (⚠️ Destructive - removes data)
 docker compose down -v
+
+# Remove unused images
+docker image prune -a
+
+# Full cleanup (⚠️ Very Destructive)
+docker system prune -a --volumes
 ```
 
 ## Troubleshooting
@@ -135,18 +215,106 @@ docker exec libhub-mysql mysqladmin ping -h localhost
 docker compose up -d --build userservice
 ```
 
+## Test Scripts Usage
+
+The `scripts/` directory contains automated test and verification scripts:
+
+### test-docker-containers.sh
+Comprehensive test suite for all Docker containers.
+
+```bash
+./scripts/test-docker-containers.sh
+```
+
+**What it tests:**
+- Container health status
+- Database connectivity
+- Service endpoints
+- API Gateway routing
+- Database migrations
+- Network connectivity
+
+### test-consul-discovery.sh
+Tests Consul service discovery functionality.
+
+```bash
+./scripts/test-consul-discovery.sh
+```
+
+**What it tests:**
+- Consul availability
+- Service registration (all 3 microservices)
+- Health check status
+- Service endpoints
+- Gateway routing through Consul
+- Service instance details
+
+### test-gateway-integration.sh
+Tests API Gateway integration with all services.
+
+```bash
+./scripts/test-gateway-integration.sh
+```
+
+**What it tests:**
+- Public endpoints (no auth required)
+- User registration and login
+- JWT token generation
+- Protected endpoints (auth required)
+- Complete user journey
+
+### verify-network.sh
+Verifies Docker network configuration.
+
+```bash
+./scripts/verify-network.sh
+```
+
+**What it checks:**
+- Network existence
+- Container connectivity
+- Service name resolution
+- Inter-service communication
+
+### verify-persistence.sh
+Tests data persistence across container restarts.
+
+```bash
+./scripts/verify-persistence.sh
+```
+
+**What it tests:**
+- Data survives container restart
+- Volume mounting
+- Database persistence
+- Migration re-application
+
+### Running All Tests
+```bash
+# Make scripts executable (first time only)
+chmod +x scripts/*.sh
+
+# Run all tests in sequence
+./scripts/test-docker-containers.sh && \
+./scripts/test-consul-discovery.sh && \
+./scripts/test-gateway-integration.sh && \
+./scripts/verify-network.sh && \
+./scripts/verify-persistence.sh
+```
+
 ## Architecture
 
 ### Services
+- **Consul**: Service discovery and health checking (ports 8500, 8600)
 - **MySQL**: Database server (port 3306)
 - **UserService**: User authentication and management (port 5002)
-- **CatalogService**: Book catalog management (port 5001)
+- **CatalogService**: Book catalog management with seed data (port 5001)
 - **LoanService**: Loan operations with Saga pattern (port 5003)
-- **Gateway**: Ocelot API Gateway (port 5000)
+- **Gateway**: Ocelot API Gateway with Consul integration (port 5000)
 - **Frontend**: Nginx-served static files (port 8080)
 
 ### Network
-All services communicate via `libhub-network` bridge network using container names for service discovery.
+All services communicate via `libhub-network` bridge network. Services are discovered dynamically through Consul, with automatic health checks and load balancing.
 
 ### Data Persistence
 MySQL data persists in the `mysql-data` Docker volume across container restarts.
@@ -154,12 +322,16 @@ MySQL data persists in the `mysql-data` Docker volume across container restarts.
 ## Features
 
 - ✅ Automatic database migrations on startup
-- ✅ Health checks for MySQL
+- ✅ **Consul service discovery with health checks**
+- ✅ **Dynamic service registration and load balancing**
+- ✅ **Book seed data (15 books) for immediate testing**
+- ✅ Health checks for all services
 - ✅ Service dependencies managed
 - ✅ Environment-based configuration
 - ✅ Volume persistence for data
 - ✅ Multi-stage Docker builds for optimization
 - ✅ Comprehensive logging
+- ✅ Horizontal scaling support
 
 ## Default Credentials
 

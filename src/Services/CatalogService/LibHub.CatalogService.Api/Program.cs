@@ -98,6 +98,9 @@ using (var scope = app.Services.CreateScope())
     {
         dbContext.Database.Migrate();
         app.Logger.LogInformation("Database migrations applied successfully for CatalogService.");
+        
+        await LibHub.CatalogService.Infrastructure.Data.BookSeeder.SeedBooksAsync(dbContext);
+        app.Logger.LogInformation("Book seed data initialized successfully.");
     }
     catch (Exception ex)
     {
