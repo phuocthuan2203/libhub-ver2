@@ -16,7 +16,7 @@ A microservices-based library management system built with ASP.NET Core 8.0.
 
 - **Backend**: ASP.NET Core 8.0 Web API
 - **Database**: MySQL 8.0
-- **ORM**: Entity Framework Core 8.0
+- **ORM**: Entity Framework Core 9.0
 - **API Gateway**: Ocelot
 - **Authentication**: JWT (JSON Web Tokens)
 - **Frontend**: Vanilla JavaScript (ES6+)
