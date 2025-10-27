@@ -6,7 +6,7 @@
       "DownstreamPathTemplate": "/api/users/register",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5002 }
+        { "Host": "userservice", "Port": 5002 }
       ]
     },
     {
@@ -15,7 +15,7 @@
       "DownstreamPathTemplate": "/api/users/login",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5002 }
+        { "Host": "userservice", "Port": 5002 }
       ]
     },
     {
@@ -24,7 +24,7 @@
       "DownstreamPathTemplate": "/api/users/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5002 }
+        { "Host": "userservice", "Port": 5002 }
       ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
@@ -36,7 +36,7 @@
       "DownstreamPathTemplate": "/api/books",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5001 }
+        { "Host": "catalogservice", "Port": 5001 }
       ]
     },
     {
@@ -45,7 +45,7 @@
       "DownstreamPathTemplate": "/api/books/{id}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5001 }
+        { "Host": "catalogservice", "Port": 5001 }
       ]
     },
     {
@@ -54,7 +54,7 @@
       "DownstreamPathTemplate": "/api/books/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5001 }
+        { "Host": "catalogservice", "Port": 5001 }
       ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
@@ -66,7 +66,7 @@
       "DownstreamPathTemplate": "/api/loans",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5003 }
+        { "Host": "loanservice", "Port": 5003 }
       ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
@@ -78,7 +78,7 @@
       "DownstreamPathTemplate": "/api/loans/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5003 }
+        { "Host": "loanservice", "Port": 5003 }
       ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"

@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: libhub-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: LibHub@2025
+      MYSQL_USER: libhub_user
+      MYSQL_PASSWORD: LibHub@Dev2025
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - libhub-network
+
+  userservice:
+    build:
+      context: .
+      dockerfile: src/Services/UserService/LibHub.UserService.Api/Dockerfile
+    container_name: libhub-userservice
+    ports:
+      - "5002:5002"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=user_db;User=libhub_user;Password=LibHub@Dev2025;
+      - Jwt__SecretKey=LibHub_SuperSecret_256BitKey_ForDevelopment_ChangeInProduction!
+      - Jwt__Issuer=LibHub.UserService
+      - Jwt__Audience=LibHub.Clients
+    networks:
+      - libhub-network
+
+  catalogservice:
+    build:
+      context: .
+      dockerfile: src/Services/CatalogService/LibHub.CatalogService.Api/Dockerfile
+    container_name: libhub-catalogservice
+    ports:
+      - "5001:5001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=catalog_db;User=libhub_user;Password=LibHub@Dev2025;
+      - Jwt__SecretKey=LibHub_SuperSecret_256BitKey_ForDevelopment_ChangeInProduction!
+      - Jwt__Issuer=LibHub.UserService
+      - Jwt__Audience=LibHub.Clients
+    networks:
+      - libhub-network
+
+  loanservice:
+    build:
+      context: .
+      dockerfile: src/Services/LoanService/LibHub.LoanService.Api/Dockerfile
+    container_name: libhub-loanservice
+    ports:
+      - "5003:5003"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      catalogservice:
+        condition: service_started
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=loan_db;User=libhub_user;Password=LibHub@Dev2025;
+      - Jwt__SecretKey=LibHub_SuperSecret_256BitKey_ForDevelopment_ChangeInProduction!
+      - Jwt__Issuer=LibHub.UserService
+      - Jwt__Audience=LibHub.Clients
+      - ExternalServices__CatalogServiceBaseUrl=http://catalogservice:5001
+    networks:
+      - libhub-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: src/Gateway/LibHub.Gateway.Api/Dockerfile
+    container_name: libhub-gateway
+    ports:
+      - "5000:5000"
+    depends_on:
+      - userservice
+      - catalogservice
+      - loanservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Jwt__SecretKey=LibHub_SuperSecret_256BitKey_ForDevelopment_ChangeInProduction!
+      - Jwt__Issuer=LibHub.UserService
+      - Jwt__Audience=LibHub.Clients
+    networks:
+      - libhub-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: libhub-frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - gateway
+    networks:
+      - libhub-network
+
+networks:
+  libhub-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
