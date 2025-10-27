@@ -1,8 +1,8 @@
 # LibHub - Project Status Tracker
 
-**Last Updated**: 2025-10-27 09:53 AM  
+**Last Updated**: 2025-10-27 09:57 AM  
 **Current Phase**: Phase 2 - UserService  
-**Overall Progress**: 30% (6/20 tasks complete)
+**Overall Progress**: 35% (7/20 tasks complete)
 
 ---
 
@@ -12,7 +12,7 @@
 |-------|--------|----------|-------|
 | Phase 0: Pre-Development Setup | ✅ **COMPLETE** | 100% | Environment configured |
 | Phase 1: Database Setup | ✅ **COMPLETE** | 100% (3/3 tasks) | All databases ready |
-| Phase 2: UserService | 🟡 **IN PROGRESS** | 60% (3/5 tasks) | Tasks 2.1-2.3 complete |
+| Phase 2: UserService | 🟡 **IN PROGRESS** | 80% (4/5 tasks) | Tasks 2.1-2.4 complete |
 | Phase 3: CatalogService | ⚪ **NOT STARTED** | 0% | Blocked by Phase 1 |
 | Phase 4: LoanService | ⚪ **NOT STARTED** | 0% | Blocked by Phase 1, 3 |
 | Phase 5: API Gateway | ⚪ **NOT STARTED** | 0% | Blocked by Phase 2, 3, 4 |
@@ -112,12 +112,26 @@
   - **JwtTokenGenerator**: JWT tokens with 1-hour expiry, includes UserId, Email, Username, Role claims
   - **Dependencies**: References Application layer (which references Domain layer)
 
+- ✅ **Task 2.4**: UserService Presentation Layer implemented
+  - **Date Completed**: 2025-10-27 09:57 AM
+  - **Files Created**:
+    - `src/Services/UserService/LibHub.UserService.Api/Controllers/UsersController.cs`
+    - `src/Services/UserService/LibHub.UserService.Api/Program.cs` (updated)
+    - `src/Services/UserService/LibHub.UserService.Api/appsettings.json` (updated)
+  - **NuGet Packages Added**: Microsoft.AspNetCore.Authentication.JwtBearer (8.0.21)
+  - **Verification**: Service builds successfully, runs on port 5002
+  - **Endpoints**: POST /api/users/register, POST /api/users/login, GET /api/users/{id}, GET /api/users/me
+  - **Authentication**: JWT Bearer token authentication configured
+  - **Swagger**: OpenAPI documentation with JWT authorization support
+  - **DI Configuration**: All services registered (IdentityApplicationService, IUserRepository, IPasswordHasher, IJwtTokenGenerator)
+  - **CORS**: Enabled for frontend integration
+
 ---
 
 ## In Progress 🟡
 
 ### Current Task
-**Task 2.4**: Implement UserService Presentation Layer (UsersController, DI setup)
+**Task 2.5**: Write UserService Tests (unit and integration tests)
 
 ---
 
@@ -127,7 +141,7 @@
 - ✅ **Task 2.1**: Implement Domain Layer (User entity, IUserRepository) - COMPLETE
 - ✅ **Task 2.2**: Implement Application Layer (IdentityApplicationService, DTOs) - COMPLETE
 - ✅ **Task 2.3**: Implement Infrastructure Layer (EfUserRepository, JWT, BCrypt) - COMPLETE
-- ⚪ **Task 2.4**: Implement Presentation Layer (UsersController, DI setup)
+- ✅ **Task 2.4**: Implement Presentation Layer (UsersController, DI setup) - COMPLETE
 - ⚪ **Task 2.5**: Write unit and integration tests
 
 ### Phase 3: CatalogService (5 tasks)
@@ -196,7 +210,7 @@
 
 | Service | Database | Domain | Application | Infrastructure | Presentation | Tests | Ready? |
 |---------|----------|--------|-------------|----------------|--------------|-------|--------|
-| **UserService** | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ❌ |
+| **UserService** | ✅ | ✅ | ✅ | ✅ | ✅ | ⚪ | 🟡 |
 | **CatalogService** | ✅ | ✅ | ⚪ | 🟡 | ⚪ | ⚪ | ❌ |
 | **LoanService** | ✅ | ✅ | ⚪ | 🟡 | ⚪ | ⚪ | ❌ |
 | **Gateway** | N/A | N/A | N/A | ⚪ | ⚪ | ⚪ | ❌ |
@@ -220,16 +234,16 @@
 ## Next Steps
 
 ### Immediate Next Task
-**Task 2.4**: Implement UserService Presentation Layer
+**Task 2.5**: Write UserService Tests
 
 **What to do**:
-1. Create UsersController with Register, Login, GetUser endpoints
-2. Configure dependency injection in Program.cs
-3. Add JWT authentication middleware
-4. Configure Swagger/OpenAPI
-5. Update appsettings.json with JWT configuration
+1. Write unit tests for Domain layer (User entity validation)
+2. Write unit tests for Application layer (IdentityApplicationService)
+3. Write integration tests for API endpoints
+4. Test JWT authentication flow
+5. Test password hashing and verification
 
-**Tasks 2.1-2.3 complete - Core layers ready, need API endpoints!**
+**Tasks 2.1-2.4 complete - UserService API ready, needs testing!**
 
 ---
 
@@ -243,6 +257,7 @@
 | 2025-10-27 09:47 | Task 2.1 | ✅ Completed | UserService Domain Layer - Zero dependencies ✅ |
 | 2025-10-27 09:50 | Task 2.2 | ✅ Completed | UserService Application Layer - Use case orchestration ✅ |
 | 2025-10-27 09:53 | Task 2.3 | ✅ Completed | UserService Infrastructure Layer - BCrypt + JWT ✅ |
+| 2025-10-27 09:57 | Task 2.4 | ✅ Completed | UserService Presentation Layer - API ready on port 5002 ✅ |
 
 ---
 
