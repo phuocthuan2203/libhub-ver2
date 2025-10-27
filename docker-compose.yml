@@ -33,9 +33,8 @@ services:
     build:
       context: .
       dockerfile: src/Services/UserService/LibHub.UserService.Api/Dockerfile
-    container_name: libhub-userservice
     ports:
-      - "5002:5002"
+      - "5002"
     depends_on:
       mysql:
         condition: service_healthy
@@ -59,9 +58,8 @@ services:
     build:
       context: .
       dockerfile: src/Services/CatalogService/LibHub.CatalogService.Api/Dockerfile
-    container_name: libhub-catalogservice
     ports:
-      - "5001:5001"
+      - "5001"
     depends_on:
       mysql:
         condition: service_healthy
@@ -85,9 +83,8 @@ services:
     build:
       context: .
       dockerfile: src/Services/LoanService/LibHub.LoanService.Api/Dockerfile
-    container_name: libhub-loanservice
     ports:
-      - "5003:5003"
+      - "5003"
     depends_on:
       mysql:
         condition: service_healthy

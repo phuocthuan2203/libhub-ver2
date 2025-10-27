@@ -14,6 +14,11 @@ docker compose up -d
 
 Wait 30-60 seconds for all services to initialize.
 
+### 1.1 Start services with defined number of instances
+```bash
+docker compose up -d --scale userservice=3 --scale catalogservice=3 --scale loanservice=3
+```
+
 ### 2. Verify Services
 ```bash
 docker ps
