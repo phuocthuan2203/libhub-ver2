@@ -7,8 +7,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         { "Host": "localhost", "Port": 5002 }
-      ],
-      "ServiceName": "UserService"
+      ]
     },
     {
       "UpstreamPathTemplate": "/api/users/login",
@@ -17,8 +16,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         { "Host": "localhost", "Port": 5002 }
-      ],
-      "ServiceName": "UserService"
+      ]
     },
     {
       "UpstreamPathTemplate": "/api/users/{everything}",
@@ -28,7 +26,6 @@
       "DownstreamHostAndPorts": [
         { "Host": "localhost", "Port": 5002 }
       ],
-      "ServiceName": "UserService",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -40,8 +37,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         { "Host": "localhost", "Port": 5001 }
-      ],
-      "ServiceName": "CatalogService"
+      ]
     },
     {
       "UpstreamPathTemplate": "/api/books/{id}",
@@ -50,8 +46,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         { "Host": "localhost", "Port": 5001 }
-      ],
-      "ServiceName": "CatalogService"
+      ]
     },
     {
       "UpstreamPathTemplate": "/api/books/{everything}",
@@ -61,20 +56,30 @@
       "DownstreamHostAndPorts": [
         { "Host": "localhost", "Port": 5001 }
       ],
-      "ServiceName": "CatalogService",
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/api/loans",
+      "UpstreamHttpMethod": [ "Post", "Get" ],
+      "DownstreamPathTemplate": "/api/loans",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "localhost", "Port": 5003 }
+      ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     },
     {
       "UpstreamPathTemplate": "/api/loans/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
       "DownstreamPathTemplate": "/api/loans/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         { "Host": "localhost", "Port": 5003 }
       ],
-      "ServiceName": "LoanService",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
