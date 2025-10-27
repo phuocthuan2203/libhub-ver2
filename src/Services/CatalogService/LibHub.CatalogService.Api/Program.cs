@@ -7,6 +7,7 @@ using LibHub.CatalogService.Application.Services;
 using LibHub.CatalogService.Domain;
 using LibHub.CatalogService.Infrastructure;
 using LibHub.CatalogService.Infrastructure.Repositories;
+using LibHub.CatalogService.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,6 +85,10 @@ builder.Services.AddScoped<BookApplicationService>();
 
 builder.Services.AddScoped<IBookRepository, EfBookRepository>();
 
+builder.Services.AddConsulServiceRegistration(builder.Configuration);
+
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -112,6 +117,9 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
+
+app.UseConsulServiceRegistration(app.Configuration, app.Lifetime);
 
 app.Run();
