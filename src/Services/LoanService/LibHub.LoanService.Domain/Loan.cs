@@ -52,4 +52,18 @@ public class Loan
         Status = "Returned";
         ReturnDate = DateTime.UtcNow;
     }
+
+    public int DaysUntilDue()
+    {
+        if (Status != "CheckedOut") return 0;
+        return (DueDate - DateTime.UtcNow).Days;
+    }
+
+    public int DaysOverdue()
+    {
+        if (!IsOverdue) return 0;
+        return (DateTime.UtcNow - DueDate).Days;
+    }
+
+    public bool IsActive() => Status == "CheckedOut";
 }
