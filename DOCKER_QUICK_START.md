@@ -7,6 +7,20 @@
 
 ## Quick Start
 
+### Windows Users
+
+**Easiest way:**
+```cmd
+setup-windows.bat
+```
+
+Or using PowerShell:
+```powershell
+.\setup-windows.ps1
+```
+
+### Linux/Mac Users
+
 ### 1. Start All Services
 ```bash
 docker compose up -d
@@ -44,28 +58,27 @@ You should see 7 containers running:
 
 ## Testing
 
-### Run Comprehensive Tests
+### Windows (Batch Scripts)
+
+```cmd
+scripts\test-docker-containers.bat
+scripts\test-consul-discovery.bat
+scripts\test-gateway-integration.bat
+```
+
+### Windows (PowerShell)
+
+```powershell
+.\scripts\test-docker-containers.ps1
+```
+
+### Linux/Mac (Shell Scripts)
+
 ```bash
 ./scripts/test-docker-containers.sh
-```
-
-### Verify Network
-```bash
 ./scripts/verify-network.sh
-```
-
-### Test Data Persistence
-```bash
 ./scripts/verify-persistence.sh
-```
-
-### Test Consul Service Discovery
-```bash
 ./scripts/test-consul-discovery.sh
-```
-
-### Test Gateway Integration
-```bash
 ./scripts/test-gateway-integration.sh
 ```
 
