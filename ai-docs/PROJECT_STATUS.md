@@ -1,8 +1,8 @@
 # LibHub - Project Status Tracker
 
-**Last Updated**: 2025-10-27 09:40 AM  
+**Last Updated**: 2025-10-27 09:53 AM  
 **Current Phase**: Phase 2 - UserService  
-**Overall Progress**: 15% (3/20 tasks complete)
+**Overall Progress**: 30% (6/20 tasks complete)
 
 ---
 
@@ -12,7 +12,7 @@
 |-------|--------|----------|-------|
 | Phase 0: Pre-Development Setup | ✅ **COMPLETE** | 100% | Environment configured |
 | Phase 1: Database Setup | ✅ **COMPLETE** | 100% (3/3 tasks) | All databases ready |
-| Phase 2: UserService | ⚪ **READY TO START** | 0% | No blockers |
+| Phase 2: UserService | 🟡 **IN PROGRESS** | 60% (3/5 tasks) | Tasks 2.1-2.3 complete |
 | Phase 3: CatalogService | ⚪ **NOT STARTED** | 0% | Blocked by Phase 1 |
 | Phase 4: LoanService | ⚪ **NOT STARTED** | 0% | Blocked by Phase 1, 3 |
 | Phase 5: API Gateway | ⚪ **NOT STARTED** | 0% | Blocked by Phase 2, 3, 4 |
@@ -70,21 +70,63 @@
   - **Connection String**: Working with libhub_user credentials
   - **Phase 1 Complete**: All three service databases ready!
 
+### Phase 2: UserService
+- ✅ **Task 2.1**: UserService Domain Layer implemented
+  - **Date Completed**: 2025-10-27 09:47 AM
+  - **Files Created**:
+    - `src/Services/UserService/LibHub.UserService.Domain/User.cs` (complete with validation)
+    - `src/Services/UserService/LibHub.UserService.Domain/IUserRepository.cs`
+    - `src/Services/UserService/LibHub.UserService.Domain/IPasswordHasher.cs`
+    - `src/Services/UserService/LibHub.UserService.Domain/Exceptions/DomainException.cs`
+    - `src/Services/UserService/LibHub.UserService.Domain/Exceptions/ValidationException.cs`
+  - **Verification**: Domain layer builds successfully with zero external dependencies
+  - **Business Rules**: Email uniqueness validation, role validation (Customer/Admin), password verification via IPasswordHasher
+  - **Entity Methods**: VerifyPassword, UpdateProfile, IsAdmin, IsCustomer
+  - **Validation**: Username (2-100 chars), Email format, Role (Customer/Admin), HashedPassword (min 50 chars)
+
+- ✅ **Task 2.2**: UserService Application Layer implemented
+  - **Date Completed**: 2025-10-27 09:50 AM
+  - **Files Created**:
+    - `src/Services/UserService/LibHub.UserService.Application/DTOs/RegisterUserDto.cs`
+    - `src/Services/UserService/LibHub.UserService.Application/DTOs/LoginDto.cs`
+    - `src/Services/UserService/LibHub.UserService.Application/DTOs/UserDto.cs`
+    - `src/Services/UserService/LibHub.UserService.Application/DTOs/TokenDto.cs`
+    - `src/Services/UserService/LibHub.UserService.Application/Interfaces/IJwtTokenGenerator.cs`
+    - `src/Services/UserService/LibHub.UserService.Application/Validation/PasswordValidator.cs`
+    - `src/Services/UserService/LibHub.UserService.Application/Services/IdentityApplicationService.cs`
+  - **Verification**: Application layer builds successfully, only depends on Domain layer
+  - **Services**: IdentityApplicationService with RegisterUserAsync, LoginUserAsync, GetUserByIdAsync, GetUserByEmailAsync
+  - **Password Validation**: Min 8 chars, uppercase, lowercase, digit, special character
+  - **Business Workflows**: Email uniqueness check, password hashing, JWT token generation
+
+- ✅ **Task 2.3**: UserService Infrastructure Layer implemented
+  - **Date Completed**: 2025-10-27 09:53 AM
+  - **Files Created**:
+    - `src/Services/UserService/LibHub.UserService.Infrastructure/Repositories/EfUserRepository.cs`
+    - `src/Services/UserService/LibHub.UserService.Infrastructure/Security/PasswordHasher.cs`
+    - `src/Services/UserService/LibHub.UserService.Infrastructure/Security/JwtTokenGenerator.cs`
+  - **NuGet Packages Added**: BCrypt.Net-Next (4.0.3), System.IdentityModel.Tokens.Jwt (7.0.3)
+  - **Verification**: Infrastructure layer builds successfully, all interfaces implemented
+  - **EfUserRepository**: Full CRUD operations with EF Core, case-insensitive email queries
+  - **PasswordHasher**: BCrypt with work factor 11 for secure password hashing
+  - **JwtTokenGenerator**: JWT tokens with 1-hour expiry, includes UserId, Email, Username, Role claims
+  - **Dependencies**: References Application layer (which references Domain layer)
+
 ---
 
 ## In Progress 🟡
 
 ### Current Task
-None - Task 1.3 just completed, Phase 1 is 100% complete!
+**Task 2.4**: Implement UserService Presentation Layer (UsersController, DI setup)
 
 ---
 
 ## Pending Tasks ⚪
 
 ### Phase 2: UserService (5 tasks)
-- ⚪ **Task 2.1**: Implement Domain Layer (User entity, IUserRepository)
-- ⚪ **Task 2.2**: Implement Application Layer (IdentityApplicationService, DTOs)
-- ⚪ **Task 2.3**: Implement Infrastructure Layer (EfUserRepository, JWT, BCrypt)
+- ✅ **Task 2.1**: Implement Domain Layer (User entity, IUserRepository) - COMPLETE
+- ✅ **Task 2.2**: Implement Application Layer (IdentityApplicationService, DTOs) - COMPLETE
+- ✅ **Task 2.3**: Implement Infrastructure Layer (EfUserRepository, JWT, BCrypt) - COMPLETE
 - ⚪ **Task 2.4**: Implement Presentation Layer (UsersController, DI setup)
 - ⚪ **Task 2.5**: Write unit and integration tests
 
@@ -154,7 +196,7 @@ None - Task 1.3 just completed, Phase 1 is 100% complete!
 
 | Service | Database | Domain | Application | Infrastructure | Presentation | Tests | Ready? |
 |---------|----------|--------|-------------|----------------|--------------|-------|--------|
-| **UserService** | ✅ | ✅ | ⚪ | 🟡 | ⚪ | ⚪ | ❌ |
+| **UserService** | ✅ | ✅ | ✅ | ✅ | ⚪ | ⚪ | ❌ |
 | **CatalogService** | ✅ | ✅ | ⚪ | 🟡 | ⚪ | ⚪ | ❌ |
 | **LoanService** | ✅ | ✅ | ⚪ | 🟡 | ⚪ | ⚪ | ❌ |
 | **Gateway** | N/A | N/A | N/A | ⚪ | ⚪ | ⚪ | ❌ |
@@ -178,15 +220,16 @@ None - Task 1.3 just completed, Phase 1 is 100% complete!
 ## Next Steps
 
 ### Immediate Next Task
-**Task 2.1**: Implement UserService Domain Layer
+**Task 2.4**: Implement UserService Presentation Layer
 
 **What to do**:
-1. Implement complete User entity with all business logic
-2. Implement IUserRepository interface
-3. Add BCrypt password hashing
-4. Add unit tests for entity validation
+1. Create UsersController with Register, Login, GetUser endpoints
+2. Configure dependency injection in Program.cs
+3. Add JWT authentication middleware
+4. Configure Swagger/OpenAPI
+5. Update appsettings.json with JWT configuration
 
-**Phase 2 is now unblocked and ready to start!**
+**Tasks 2.1-2.3 complete - Core layers ready, need API endpoints!**
 
 ---
 
@@ -197,6 +240,9 @@ None - Task 1.3 just completed, Phase 1 is 100% complete!
 | 2025-10-27 09:24 | Task 1.1 | ✅ Completed | UserService DB ready with all 4 projects |
 | 2025-10-27 09:30 | Task 1.2 | ✅ Completed | CatalogService DB ready with all 4 projects |
 | 2025-10-27 09:40 | Task 1.3 | ✅ Completed | LoanService DB ready - Phase 1 Complete! 🎉 |
+| 2025-10-27 09:47 | Task 2.1 | ✅ Completed | UserService Domain Layer - Zero dependencies ✅ |
+| 2025-10-27 09:50 | Task 2.2 | ✅ Completed | UserService Application Layer - Use case orchestration ✅ |
+| 2025-10-27 09:53 | Task 2.3 | ✅ Completed | UserService Infrastructure Layer - BCrypt + JWT ✅ |
 
 ---
 
