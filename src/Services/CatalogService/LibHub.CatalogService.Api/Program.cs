@@ -88,8 +88,17 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
-    db.Database.Migrate();
+    var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+        app.Logger.LogInformation("Database migrations applied successfully for CatalogService.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Failed to apply database migrations for CatalogService.");
+        throw;
+    }
 }
 
 if (app.Environment.IsDevelopment())

@@ -98,8 +98,17 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<LoanDbContext>();
-    db.Database.Migrate();
+    var dbContext = scope.ServiceProvider.GetRequiredService<LoanDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+        app.Logger.LogInformation("Database migrations applied successfully for LoanService.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Failed to apply database migrations for LoanService.");
+        throw;
+    }
 }
 
 if (app.Environment.IsDevelopment())

@@ -92,8 +92,17 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-    db.Database.Migrate();
+    var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+        app.Logger.LogInformation("Database migrations applied successfully for UserService.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Failed to apply database migrations for UserService.");
+        throw;
+    }
 }
 
 if (app.Environment.IsDevelopment())
