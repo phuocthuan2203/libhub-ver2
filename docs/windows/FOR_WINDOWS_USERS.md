@@ -245,8 +245,8 @@ docker compose down -v
 
 - **Quick reference**: `WINDOWS_QUICK_START.md`
 - **Detailed guide**: `WINDOWS_SETUP.md`
-- **All Docker commands**: `DOCKER_QUICK_START.md`
-- **Troubleshooting**: `ai-docs/deployment/DOCKER_TROUBLESHOOTING.md`
+- **All Docker commands**: `../deployment/DOCKER_QUICK_START.md`
+- **Troubleshooting**: `../deployment/DOCKER_TROUBLESHOOTING.md`
 
 ## 🎓 Understanding the Architecture
 

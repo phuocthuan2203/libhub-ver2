@@ -88,7 +88,7 @@ echo To view logs:        docker compose logs -f
 echo To stop services:    docker compose down
 echo To restart:          docker compose restart
 echo.
-echo For more commands, see DOCKER_QUICK_START.md
+echo For more commands, see docs\deployment\DOCKER_QUICK_START.md
 echo.
 
 endlocal

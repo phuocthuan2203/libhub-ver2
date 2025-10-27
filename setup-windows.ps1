@@ -89,5 +89,5 @@ Write-Host "  View logs:       docker compose logs -f" -ForegroundColor Gray
 Write-Host "  Stop services:   docker compose down" -ForegroundColor Gray
 Write-Host "  Restart:         docker compose restart" -ForegroundColor Gray
 Write-Host ""
-Write-Host "For more commands, see DOCKER_QUICK_START.md" -ForegroundColor Yellow
+Write-Host "For more commands, see docs\deployment\DOCKER_QUICK_START.md" -ForegroundColor Yellow
 Write-Host ""

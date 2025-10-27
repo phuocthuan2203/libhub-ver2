@@ -113,9 +113,24 @@ docker compose restart
 docker compose up -d --build
 ```
 
-For detailed documentation, see:
-- **Windows Users**: `WINDOWS_SETUP.md`
-- **All Users**: `DOCKER_QUICK_START.md`
+## 📚 Documentation
+
+### For Windows Users
+- **Quick Start**: [`docs/windows/SHARE_WITH_FRIENDS.md`](docs/windows/SHARE_WITH_FRIENDS.md)
+- **Complete Guide**: [`docs/windows/FOR_WINDOWS_USERS.md`](docs/windows/FOR_WINDOWS_USERS.md)
+- **Setup Reference**: [`docs/windows/WINDOWS_SETUP.md`](docs/windows/WINDOWS_SETUP.md)
+- **Quick Reference**: [`docs/windows/WINDOWS_QUICK_START.md`](docs/windows/WINDOWS_QUICK_START.md)
+
+### For All Users
+- **Docker Guide**: [`docs/deployment/DOCKER_QUICK_START.md`](docs/deployment/DOCKER_QUICK_START.md)
+- **Consul & Service Discovery**: [`docs/deployment/CONSUL_SERVICE_DISCOVERY.md`](docs/deployment/CONSUL_SERVICE_DISCOVERY.md)
+- **Testing Guide**: [`docs/deployment/TESTING_CONSUL_AND_SAGA.md`](docs/deployment/TESTING_CONSUL_AND_SAGA.md)
+
+### For Developers
+- **Git Commands**: [`docs/development/GIT_COMMANDS.md`](docs/development/GIT_COMMANDS.md)
+- **Architecture Details**: [`ai-docs/master-context/`](ai-docs/master-context/)
+
+See [`docs/`](docs/) for complete documentation index.
 
 ## Architecture
 
