@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Details - LibHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <h1>LibHub</h1>
+        <div id="navLinks"></div>
+    </nav>
+
+    <div class="container">
+        <div class="book-detail" id="bookDetail">
+            <p>Loading book details...</p>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+            <button onclick="window.location.href='index.html'" class="btn-secondary">
+                Back to Catalog
+            </button>
+            <button id="borrowBtn" onclick="borrowBook()" class="btn-success" style="display: none;">
+                Borrow This Book
+            </button>
+        </div>
+        
+        <div id="errorMessage" class="error-message" style="display: none; margin-top: 1rem;"></div>
+        <div id="successMessage" class="success-message" style="display: none; margin-top: 1rem;"></div>
+    </div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        updateNavigation();
+        
+        let currentBookId = null;
+        
+        async function loadBookDetail() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentBookId = urlParams.get('id');
+            
+            if (!currentBookId) {
+                document.getElementById('bookDetail').innerHTML = 
+                    '<p style="color: red;">Invalid book ID</p>';
+                return;
+            }
+            
+            try {
+                const book = await apiClient.get(`/api/books/${currentBookId}`);
+                renderBookDetail(book);
+                
+                if (isLoggedIn() && book.isAvailable) {
+                    document.getElementById('borrowBtn').style.display = 'inline-block';
+                }
+            } catch (error) {
+                console.error('Error loading book:', error);
+                document.getElementById('bookDetail').innerHTML = 
+                    '<p style="color: red;">Error loading book details. Book may not exist.</p>';
+            }
+        }
+        
+        function renderBookDetail(book) {
+            const detailDiv = document.getElementById('bookDetail');
+            
+            detailDiv.innerHTML = `
+                <h2>${escapeHtml(book.title)}</h2>
+                
+                <div class="info-row">
+                    <span class="info-label">Author:</span>
+                    <span>${escapeHtml(book.author)}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Genre:</span>
+                    <span>${escapeHtml(book.genre)}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">ISBN:</span>
+                    <span>${escapeHtml(book.isbn)}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">Availability:</span>
+                    <span class="${book.isAvailable ? 'availability' : 'availability unavailable'}">
+                        ${book.availableCopies} of ${book.totalCopies} copies available
+                    </span>
+                </div>
+                
+                ${book.description ? `
+                    <div style="margin-top: 1.5rem;">
+                        <h3>Description</h3>
+                        <p>${escapeHtml(book.description)}</p>
+                    </div>
+                ` : ''}
+            `;
+        }
+        
+        async function borrowBook() {
+            if (!isLoggedIn()) {
+                alert('Please login to borrow books');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            const borrowBtn = document.getElementById('borrowBtn');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            borrowBtn.disabled = true;
+            borrowBtn.textContent = 'Borrowing...';
+            
+            try {
+                await apiClient.post('/api/loans', {
+                    bookId: parseInt(currentBookId)
+                }, true);
+                
+                successDiv.textContent = 'Book borrowed successfully! Redirecting to your loans...';
+                successDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    window.location.href = 'my-loans.html';
+                }, 1500);
+                
+            } catch (error) {
+                let errorMessage = 'Failed to borrow book. ';
+                
+                if (error.message.includes('400')) {
+                    errorMessage += 'Book may be unavailable or you have reached the maximum loan limit (5 books).';
+                } else if (error.message.includes('401')) {
+                    errorMessage += 'Please login again.';
+                } else {
+                    errorMessage += 'Please try again later.';
+                }
+                
+                errorDiv.textContent = errorMessage;
+                errorDiv.style.display = 'block';
+                
+                borrowBtn.disabled = false;
+                borrowBtn.textContent = 'Borrow This Book';
+                
+                console.error('Borrow error:', error);
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        loadBookDetail();
+    </script>
+</body>
+</html>

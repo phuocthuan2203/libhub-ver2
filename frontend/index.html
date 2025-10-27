@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Catalog - LibHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <h1>LibHub</h1>
+        <div id="navLinks"></div>
+    </nav>
+
+    <div class="container">
+        <div class="search-section">
+            <h2>Browse Books</h2>
+            <div class="search-controls">
+                <input type="text" id="searchInput" placeholder="Search by title, author, or ISBN...">
+                <select id="genreFilter">
+                    <option value="">All Genres</option>
+                    <option value="Fiction">Fiction</option>
+                    <option value="Non-Fiction">Non-Fiction</option>
+                    <option value="Science">Science</option>
+                    <option value="History">History</option>
+                    <option value="Biography">Biography</option>
+                    <option value="Fantasy">Fantasy</option>
+                    <option value="Mystery">Mystery</option>
+                    <option value="Romance">Romance</option>
+                    <option value="Thriller">Thriller</option>
+                    <option value="Self-Help">Self-Help</option>
+                </select>
+                <button onclick="searchBooks()" class="btn-primary">Search</button>
+            </div>
+        </div>
+
+        <div id="bookGrid" class="book-grid"></div>
+        
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <h3>No books found</h3>
+            <p>Try adjusting your search criteria</p>
+        </div>
+    </div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        updateNavigation();
+        
+        async function loadBooks(search = '', genre = '') {
+            try {
+                const params = new URLSearchParams();
+                if (search) params.append('search', search);
+                if (genre) params.append('genre', genre);
+                
+                const queryString = params.toString();
+                const endpoint = queryString ? `/api/books?${queryString}` : '/api/books';
+                
+                const books = await apiClient.get(endpoint);
+                renderBooks(books);
+            } catch (error) {
+                console.error('Error loading books:', error);
+                document.getElementById('bookGrid').innerHTML = 
+                    '<p style="color: red;">Error loading books. Please try again.</p>';
+            }
+        }
+        
+        function renderBooks(books) {
+            const grid = document.getElementById('bookGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (books.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+            
+            grid.innerHTML = books.map(book => `
+                <div class="book-card">
+                    <h3>${escapeHtml(book.title)}</h3>
+                    <p><strong>By:</strong> ${escapeHtml(book.author)}</p>
+                    <p><strong>Genre:</strong> ${escapeHtml(book.genre)}</p>
+                    <p><strong>ISBN:</strong> ${escapeHtml(book.isbn)}</p>
+                    <p class="availability ${book.isAvailable ? '' : 'unavailable'}">
+                        ${book.availableCopies} of ${book.totalCopies} available
+                    </p>
+                    <button onclick="viewDetails(${book.bookId})" class="btn-primary">
+                        View Details
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        function searchBooks() {
+            const search = document.getElementById('searchInput').value;
+            const genre = document.getElementById('genreFilter').value;
+            loadBooks(search, genre);
+        }
+        
+        function viewDetails(bookId) {
+            window.location.href = `book-detail.html?id=${bookId}`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchBooks();
+            }
+        });
+        
+        loadBooks();
+    </script>
+</body>
+</html>

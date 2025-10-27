@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Loans - LibHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <h1>LibHub</h1>
+        <div id="navLinks"></div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>My Loans</h2>
+        </div>
+
+        <div id="activeLoans">
+            <h3>Active Loans</h3>
+            <div id="activeList"></div>
+        </div>
+
+        <div id="loanHistory" style="margin-top: 2rem;">
+            <h3>Loan History</h3>
+            <div id="historyList"></div>
+        </div>
+        
+        <div id="errorMessage" class="error-message" style="display: none; margin-top: 1rem;"></div>
+        <div id="successMessage" class="success-message" style="display: none; margin-top: 1rem;"></div>
+    </div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        requireAuth();
+        updateNavigation();
+        
+        async function loadMyLoans() {
+            const userId = getUserId();
+            const errorDiv = document.getElementById('errorMessage');
+            
+            errorDiv.style.display = 'none';
+            
+            try {
+                const loans = await apiClient.get(`/api/loans/user/${userId}`, true);
+                
+                const active = loans.filter(l => l.status === 'CheckedOut');
+                const history = loans.filter(l => l.status !== 'CheckedOut');
+                
+                renderActiveLoans(active);
+                renderHistory(history);
+            } catch (error) {
+                console.error('Error loading loans:', error);
+                errorDiv.textContent = 'Error loading your loans. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        function renderActiveLoans(loans) {
+            const container = document.getElementById('activeList');
+            
+            if (loans.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>You have no active loans</p></div>';
+                return;
+            }
+            
+            container.innerHTML = loans.map(loan => {
+                const dueDate = new Date(loan.dueDate);
+                const isOverdue = loan.isOverdue;
+                const daysInfo = isOverdue 
+                    ? `<span class="overdue-badge">OVERDUE by ${Math.abs(loan.daysUntilDue)} days!</span>`
+                    : `${loan.daysUntilDue} days left`;
+                
+                return `
+                    <div class="loan-card ${isOverdue ? 'overdue' : ''}">
+                        <h4>Loan #${loan.loanId}</h4>
+                        <p><strong>Book ID:</strong> ${loan.bookId}</p>
+                        <p><strong>Checked Out:</strong> ${formatDate(loan.checkoutDate)}</p>
+                        <p><strong>Due Date:</strong> ${formatDate(loan.dueDate)}</p>
+                        <p><strong>Status:</strong> ${daysInfo}</p>
+                        <button onclick="returnBook(${loan.loanId})" class="btn-success">
+                            Return Book
+                        </button>
+                        <button onclick="viewBookDetails(${loan.bookId})" class="btn-secondary">
+                            View Book
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderHistory(loans) {
+            const container = document.getElementById('historyList');
+            
+            if (loans.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No loan history</p></div>';
+                return;
+            }
+            
+            container.innerHTML = loans.map(loan => `
+                <div class="loan-card">
+                    <h4>Loan #${loan.loanId}</h4>
+                    <p><strong>Book ID:</strong> ${loan.bookId}</p>
+                    <p><strong>Checked Out:</strong> ${formatDate(loan.checkoutDate)}</p>
+                    <p><strong>Due Date:</strong> ${formatDate(loan.dueDate)}</p>
+                    <p><strong>Status:</strong> ${loan.status}</p>
+                    ${loan.returnDate ? `<p><strong>Returned:</strong> ${formatDate(loan.returnDate)}</p>` : ''}
+                    <button onclick="viewBookDetails(${loan.bookId})" class="btn-secondary">
+                        View Book
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        async function returnBook(loanId) {
+            if (!confirm('Are you sure you want to return this book?')) {
+                return;
+            }
+            
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            try {
+                await apiClient.put(`/api/loans/${loanId}/return`, null, true);
+                
+                successDiv.textContent = 'Book returned successfully!';
+                successDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
+                    loadMyLoans();
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Return error:', error);
+                errorDiv.textContent = 'Failed to return book. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        function viewBookDetails(bookId) {
+            window.location.href = `book-detail.html?id=${bookId}`;
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        loadMyLoans();
+    </script>
+</body>
+</html>

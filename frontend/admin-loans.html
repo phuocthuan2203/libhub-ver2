@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Loans - LibHub Admin</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <h1>LibHub Admin</h1>
+        <div id="navLinks"></div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>All System Loans</h2>
+        </div>
+
+        <div class="filter-buttons">
+            <button onclick="filterLoans('all')" class="btn-primary" id="btnAll">All</button>
+            <button onclick="filterLoans('active')" class="btn-secondary" id="btnActive">Active</button>
+            <button onclick="filterLoans('overdue')" class="btn-danger" id="btnOverdue">Overdue</button>
+            <button onclick="filterLoans('returned')" class="btn-success" id="btnReturned">Returned</button>
+        </div>
+
+        <table id="loansTable">
+            <thead>
+                <tr>
+                    <th>Loan ID</th>
+                    <th>User ID</th>
+                    <th>Book ID</th>
+                    <th>Status</th>
+                    <th>Checkout Date</th>
+                    <th>Due Date</th>
+                    <th>Return Date</th>
+                </tr>
+            </thead>
+            <tbody id="loansList">
+                <tr><td colspan="7">Loading loans...</td></tr>
+            </tbody>
+        </table>
+        
+        <div id="errorMessage" class="error-message" style="display: none; margin-top: 1rem;"></div>
+    </div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        requireAdmin();
+        updateNavigation();
+        
+        let allLoans = [];
+        let currentFilter = 'all';
+        
+        async function loadAllLoans() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.style.display = 'none';
+            
+            try {
+                allLoans = await apiClient.get('/api/loans', true);
+                filterLoans(currentFilter);
+            } catch (error) {
+                console.error('Error loading loans:', error);
+                errorDiv.textContent = 'Error loading loans. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+        
+        function filterLoans(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-buttons button').forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+            
+            const activeBtn = document.getElementById(`btn${filter.charAt(0).toUpperCase() + filter.slice(1)}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('btn-secondary');
+                activeBtn.classList.add('btn-primary');
+            }
+            
+            let filteredLoans = allLoans;
+            
+            switch(filter) {
+                case 'active':
+                    filteredLoans = allLoans.filter(l => l.status === 'CheckedOut');
+                    break;
+                case 'overdue':
+                    filteredLoans = allLoans.filter(l => l.isOverdue);
+                    break;
+                case 'returned':
+                    filteredLoans = allLoans.filter(l => l.status === 'Returned');
+                    break;
+                case 'all':
+                default:
+                    filteredLoans = allLoans;
+            }
+            
+            renderLoans(filteredLoans);
+        }
+        
+        function renderLoans(loans) {
+            const tbody = document.getElementById('loansList');
+            
+            if (loans.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No loans found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = loans.map(loan => {
+                const rowClass = loan.isOverdue ? 'style="background-color: #ffe5e5;"' : '';
+                
+                return `
+                    <tr ${rowClass}>
+                        <td>${loan.loanId}</td>
+                        <td>${loan.userId}</td>
+                        <td>${loan.bookId}</td>
+                        <td>
+                            ${loan.status}
+                            ${loan.isOverdue ? '<span class="overdue-badge">OVERDUE</span>' : ''}
+                        </td>
+                        <td>${formatDate(loan.checkoutDate)}</td>
+                        <td>${formatDate(loan.dueDate)}</td>
+                        <td>${loan.returnDate ? formatDate(loan.returnDate) : '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        loadAllLoans();
+    </script>
+</body>
+</html>

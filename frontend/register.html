@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - LibHub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <h1>LibHub</h1>
+    </nav>
+
+    <div class="auth-container">
+        <h2>Create Account</h2>
+        
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Your display name" minlength="2" maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="your.email@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Minimum 8 characters" minlength="8">
+                <small style="color: #666; font-size: 0.85rem;">
+                    Must contain: uppercase, lowercase, digit, and special character
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required 
+                       placeholder="Re-enter your password">
+            </div>
+            
+            <button type="submit">Register</button>
+        </form>
+        
+        <div class="auth-link">
+            <p>Already have an account? <a href="login.html">Login here</a></p>
+        </div>
+    </div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (!validatePassword(password)) {
+                errorDiv.textContent = getPasswordValidationMessage(password);
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                await apiClient.post('/api/users/register', {
+                    username: username,
+                    email: email,
+                    password: password
+                });
+                
+                successDiv.textContent = 'Registration successful! Logging you in...';
+                successDiv.style.display = 'block';
+                
+                setTimeout(async () => {
+                    try {
+                        const loginData = await apiClient.post('/api/users/login', {
+                            email: email,
+                            password: password
+                        });
+                        
+                        saveToken(loginData.accessToken);
+                        window.location.href = 'index.html';
+                    } catch (loginError) {
+                        errorDiv.textContent = 'Registration successful but auto-login failed. Please login manually.';
+                        errorDiv.style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 2000);
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                let errorMessage = 'Registration failed. ';
+                if (error.message.includes('409')) {
+                    errorMessage += 'Email already exists.';
+                } else if (error.message.includes('400')) {
+                    errorMessage += 'Invalid input. Please check your information.';
+                } else {
+                    errorMessage += 'Please try again.';
+                }
+                errorDiv.textContent = errorMessage;
+                errorDiv.style.display = 'block';
+                console.error('Registration error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
