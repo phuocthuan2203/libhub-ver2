@@ -7,6 +7,7 @@ using LibHub.CatalogService.Application.Services;
 using LibHub.CatalogService.Domain;
 using LibHub.CatalogService.Infrastructure;
 using LibHub.CatalogService.Infrastructure.Repositories;
+using LibHub.CatalogService.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,9 +85,29 @@ builder.Services.AddScoped<BookApplicationService>();
 
 builder.Services.AddScoped<IBookRepository, EfBookRepository>();
 
-builder.WebHost.UseUrls("http://localhost:5001");
+builder.Services.AddConsulServiceRegistration(builder.Configuration);
+
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+        app.Logger.LogInformation("Database migrations applied successfully for CatalogService.");
+        
+        await LibHub.CatalogService.Infrastructure.Data.BookSeeder.SeedBooksAsync(dbContext);
+        app.Logger.LogInformation("Book seed data initialized successfully.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Failed to apply database migrations for CatalogService.");
+        throw;
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -99,6 +120,9 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
+
+app.UseConsulServiceRegistration(app.Configuration, app.Lifetime);
 
 app.Run();

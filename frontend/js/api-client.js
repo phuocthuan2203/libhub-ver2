@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = window.location.hostname === 'localhost' && window.location.port === '8080' 
+    ? '/api'
+    : 'http://localhost:5000';
 
 class ApiClient {
     constructor(baseUrl) {

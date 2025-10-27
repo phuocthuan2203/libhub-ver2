@@ -5,27 +5,30 @@
       "UpstreamHttpMethod": [ "Post" ],
       "DownstreamPathTemplate": "/api/users/register",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5002 }
-      ]
+      "ServiceName": "userservice",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
     },
     {
       "UpstreamPathTemplate": "/api/users/login",
       "UpstreamHttpMethod": [ "Post" ],
       "DownstreamPathTemplate": "/api/users/login",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5002 }
-      ]
+      "ServiceName": "userservice",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
     },
     {
       "UpstreamPathTemplate": "/api/users/{everything}",
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
       "DownstreamPathTemplate": "/api/users/{everything}",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5002 }
-      ],
+      "ServiceName": "userservice",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      },
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -35,27 +38,30 @@
       "UpstreamHttpMethod": [ "Get" ],
       "DownstreamPathTemplate": "/api/books",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5001 }
-      ]
+      "ServiceName": "catalogservice",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
     },
     {
       "UpstreamPathTemplate": "/api/books/{id}",
       "UpstreamHttpMethod": [ "Get" ],
       "DownstreamPathTemplate": "/api/books/{id}",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5001 }
-      ]
+      "ServiceName": "catalogservice",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
     },
     {
       "UpstreamPathTemplate": "/api/books/{everything}",
       "UpstreamHttpMethod": [ "Post", "Put", "Delete" ],
       "DownstreamPathTemplate": "/api/books/{everything}",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5001 }
-      ],
+      "ServiceName": "catalogservice",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      },
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -65,9 +71,10 @@
       "UpstreamHttpMethod": [ "Post", "Get" ],
       "DownstreamPathTemplate": "/api/loans",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5003 }
-      ],
+      "ServiceName": "loanservice",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      },
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
@@ -77,15 +84,22 @@
       "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
       "DownstreamPathTemplate": "/api/loans/{everything}",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        { "Host": "localhost", "Port": 5003 }
-      ],
+      "ServiceName": "loanservice",
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      },
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
       }
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:5000"
+    "BaseUrl": "http://localhost:5000",
+    "ServiceDiscoveryProvider": {
+      "Scheme": "http",
+      "Host": "consul",
+      "Port": 8500,
+      "Type": "Consul"
+    }
   }
 }

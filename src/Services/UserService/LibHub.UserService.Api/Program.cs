@@ -9,6 +9,7 @@ using LibHub.UserService.Domain;
 using LibHub.UserService.Infrastructure;
 using LibHub.UserService.Infrastructure.Repositories;
 using LibHub.UserService.Infrastructure.Security;
+using LibHub.UserService.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -88,7 +89,26 @@ builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 
+builder.Services.AddConsulServiceRegistration(builder.Configuration);
+
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+    try
+    {
+        dbContext.Database.Migrate();
+        app.Logger.LogInformation("Database migrations applied successfully for UserService.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Failed to apply database migrations for UserService.");
+        throw;
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -101,6 +121,9 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
+
+app.UseConsulServiceRegistration(app.Configuration, app.Lifetime);
 
 app.Run();
