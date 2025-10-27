@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using LibHub.LoanService.Application.DTOs;
 using LibHub.LoanService.Application.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace LibHub.LoanService.Infrastructure.HttpClients;
@@ -9,11 +11,22 @@ public class CatalogServiceHttpClient : ICatalogServiceClient
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<CatalogServiceHttpClient> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CatalogServiceHttpClient(HttpClient httpClient, ILogger<CatalogServiceHttpClient> logger)
+    public CatalogServiceHttpClient(HttpClient httpClient, ILogger<CatalogServiceHttpClient> logger, IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    private void SetAuthorizationHeader()
+    {
+        var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
+        if (!string.IsNullOrEmpty(token))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse(token);
+        }
     }
 
     public async Task<BookDto> GetBookAsync(int bookId)
@@ -40,6 +53,7 @@ public class CatalogServiceHttpClient : ICatalogServiceClient
     {
         try
         {
+            SetAuthorizationHeader();
             var stockDto = new { ChangeAmount = -1 };
             var response = await _httpClient.PutAsJsonAsync($"/api/books/{bookId}/stock", stockDto);
 
@@ -62,6 +76,7 @@ public class CatalogServiceHttpClient : ICatalogServiceClient
     {
         try
         {
+            SetAuthorizationHeader();
             var stockDto = new { ChangeAmount = 1 };
             var response = await _httpClient.PutAsJsonAsync($"/api/books/{bookId}/stock", stockDto);
 

@@ -22,6 +22,8 @@ builder.Services.AddScoped<ILoanRepository, EfLoanRepository>();
 
 builder.Services.AddScoped<LoanApplicationService>();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddHttpClient<ICatalogServiceClient, CatalogServiceHttpClient>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ExternalServices:CatalogServiceBaseUrl"]!);
