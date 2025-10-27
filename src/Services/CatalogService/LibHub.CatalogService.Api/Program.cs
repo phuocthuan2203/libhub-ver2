@@ -84,9 +84,13 @@ builder.Services.AddScoped<BookApplicationService>();
 
 builder.Services.AddScoped<IBookRepository, EfBookRepository>();
 
-builder.WebHost.UseUrls("http://localhost:5001");
-
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+    db.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {
