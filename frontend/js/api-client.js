@@ -1,5 +1,5 @@
 const API_BASE_URL = window.location.port === '8080' 
-    ? '/api'
+    ? ''
     : `http://${window.location.hostname}:5000`;
 
 class ApiClient {
