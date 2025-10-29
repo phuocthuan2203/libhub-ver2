@@ -37,10 +37,12 @@ Write-Host "  2. Start all services (Consul, MySQL, Microservices, Gateway, Fron
 Write-Host "  3. Wait for services to be ready" -ForegroundColor White
 Write-Host "  4. Run health checks" -ForegroundColor White
 Write-Host ""
+Write-Host "NOTE: MySQL will run on port 3308 to avoid conflicts with local MySQL" -ForegroundColor Cyan
+Write-Host ""
 Write-Host "This may take 3-5 minutes on first run..." -ForegroundColor Yellow
 Write-Host ""
 
-docker compose up -d --build
+docker compose -f docker-compose.windows.yml up -d --build
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -85,9 +87,9 @@ Write-Host "  Gateway:   http://localhost:5000" -ForegroundColor Cyan
 Write-Host "  Consul UI: http://localhost:8500" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Useful commands:" -ForegroundColor White
-Write-Host "  View logs:       docker compose logs -f" -ForegroundColor Gray
-Write-Host "  Stop services:   docker compose down" -ForegroundColor Gray
-Write-Host "  Restart:         docker compose restart" -ForegroundColor Gray
+Write-Host "  View logs:       docker compose -f docker-compose.windows.yml logs -f" -ForegroundColor Gray
+Write-Host "  Stop services:   docker compose -f docker-compose.windows.yml down" -ForegroundColor Gray
+Write-Host "  Restart:         docker compose -f docker-compose.windows.yml restart" -ForegroundColor Gray
 Write-Host ""
 Write-Host "For more commands, see docs\deployment\DOCKER_QUICK_START.md" -ForegroundColor Yellow
 Write-Host ""

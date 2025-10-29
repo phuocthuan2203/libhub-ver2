@@ -37,10 +37,12 @@ echo 2. Start all services (Consul, MySQL, Microservices, Gateway, Frontend)
 echo 3. Wait for services to be ready
 echo 4. Run health checks
 echo.
+echo NOTE: MySQL will run on port 3308 to avoid conflicts with local MySQL
+echo.
 echo This may take 3-5 minutes on first run...
 echo.
 
-docker compose up -d --build
+docker compose -f docker-compose.windows.yml up -d --build
 
 if errorlevel 1 (
     echo.
@@ -84,9 +86,9 @@ echo   Frontend:  http://localhost:8080
 echo   Gateway:   http://localhost:5000
 echo   Consul UI: http://localhost:8500
 echo.
-echo To view logs:        docker compose logs -f
-echo To stop services:    docker compose down
-echo To restart:          docker compose restart
+echo To view logs:        docker compose -f docker-compose.windows.yml logs -f
+echo To stop services:    docker compose -f docker-compose.windows.yml down
+echo To restart:          docker compose -f docker-compose.windows.yml restart
 echo.
 echo For more commands, see docs\deployment\DOCKER_QUICK_START.md
 echo.

@@ -46,12 +46,26 @@ echo "[4/6] Stopping existing containers..."
 docker compose down 2>/dev/null || true
 
 echo ""
-echo "[5/6] Building and starting containers..."
+echo "[5/6] Cleaning up old images and volumes (optional)..."
+read -p "Do you want to remove old volumes and rebuild from scratch? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    docker compose down -v
+    echo "✓ Volumes removed"
+fi
+
+echo ""
+echo "[6/6] Building and starting containers..."
 docker compose up -d --build
 
 echo ""
-echo "[6/6] Waiting for services to be ready..."
-sleep 30
+echo "[7/7] Waiting for services to be ready..."
+echo "This may take up to 60 seconds..."
+sleep 60
+
+echo ""
+echo "Checking service health..."
+docker compose ps
 
 echo ""
 echo "====================================="
