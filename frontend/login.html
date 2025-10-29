@@ -37,6 +37,7 @@
 
     <script src="js/api-client.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/ui-utils.js"></script>
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -44,8 +45,10 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('errorMessage');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
             
             errorDiv.style.display = 'none';
+            setButtonLoading(submitBtn, true);
             
             try {
                 const data = await apiClient.post('/api/users/login', {
@@ -54,11 +57,17 @@
                 });
                 
                 saveToken(data.accessToken);
-                window.location.href = 'index.html';
+                showToast('Login successful! Redirecting...', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
                 
             } catch (error) {
+                setButtonLoading(submitBtn, false);
                 errorDiv.textContent = 'Invalid email or password. Please try again.';
                 errorDiv.style.display = 'block';
+                showToast('Login failed', 'error');
                 console.error('Login error:', error);
             }
         });

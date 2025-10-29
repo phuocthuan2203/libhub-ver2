@@ -4,6 +4,7 @@ function saveToken(token) {
     localStorage.setItem('user_role', payload.role || 'Customer');
     localStorage.setItem('user_id', payload.sub);
     localStorage.setItem('user_email', payload.email || '');
+    localStorage.setItem('username', payload.unique_name || payload.email || 'User');
 }
 
 function isLoggedIn() {
@@ -21,6 +22,22 @@ function getUserId() {
 
 function getUserRole() {
     return localStorage.getItem('user_role');
+}
+
+function getUsername() {
+    return localStorage.getItem('username') || 'User';
+}
+
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
 }
 
 function requireAuth() {
@@ -44,7 +61,11 @@ function requireAdmin() {
 }
 
 function logout() {
+    const theme = localStorage.getItem('theme');
     localStorage.clear();
+    if (theme) {
+        localStorage.setItem('theme', theme);
+    }
     window.location.href = 'login.html';
 }
 
@@ -85,22 +106,45 @@ function getPasswordValidationMessage(password) {
 }
 
 function updateNavigation() {
-    const navLinks = document.getElementById('navLinks');
-    if (!navLinks) return;
+    initTheme();
+    
+    const nav = document.querySelector('nav');
+    if (!nav) return;
+    
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const themeIcon = currentTheme === 'light' ? '🌙' : '☀️';
     
     if (isLoggedIn()) {
         const role = getUserRole();
-        navLinks.innerHTML = `
-            <a href="index.html">Browse Books</a>
-            <a href="my-loans.html">My Loans</a>
-            ${role === 'Admin' ? '<a href="admin-catalog.html">Admin Panel</a>' : ''}
-            <button onclick="logout()" class="btn-logout">Logout</button>
+        const username = getUsername();
+        nav.innerHTML = `
+            <div class="nav-left">
+                <h1 onclick="window.location.href='index.html'">LibHub</h1>
+                <div class="nav-center">
+                    <a href="index.html">Browse Books</a>
+                    <a href="my-loans.html">My Loans</a>
+                    ${role === 'Admin' ? '<a href="admin-catalog.html">Admin Panel</a>' : ''}
+                </div>
+            </div>
+            <div class="nav-right">
+                <span class="welcome-message">Welcome, <strong>${username}</strong></span>
+                <button onclick="toggleTheme()" class="theme-toggle" title="Toggle theme">${themeIcon}</button>
+                <button onclick="logout()" class="btn-logout">Logout</button>
+            </div>
         `;
     } else {
-        navLinks.innerHTML = `
-            <a href="index.html">Browse Books</a>
-            <a href="login.html">Login</a>
-            <a href="register.html">Register</a>
+        nav.innerHTML = `
+            <div class="nav-left">
+                <h1 onclick="window.location.href='index.html'">LibHub</h1>
+                <div class="nav-center">
+                    <a href="index.html">Browse Books</a>
+                    <a href="login.html">Login</a>
+                    <a href="register.html">Register</a>
+                </div>
+            </div>
+            <div class="nav-right">
+                <button onclick="toggleTheme()" class="theme-toggle" title="Toggle theme">${themeIcon}</button>
+            </div>
         `;
     }
 }

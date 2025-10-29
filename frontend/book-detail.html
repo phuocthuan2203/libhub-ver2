@@ -32,6 +32,7 @@
 
     <script src="js/api-client.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/ui-utils.js"></script>
     <script>
         updateNavigation();
         
@@ -44,8 +45,12 @@
             if (!currentBookId) {
                 document.getElementById('bookDetail').innerHTML = 
                     '<p style="color: red;">Invalid book ID</p>';
+                showToast('Invalid book ID', 'error');
                 return;
             }
+            
+            const detailDiv = document.getElementById('bookDetail');
+            detailDiv.innerHTML = '<div class="skeleton skeleton-card"></div>';
             
             try {
                 const book = await apiClient.get(`/api/books/${currentBookId}`);
@@ -55,7 +60,7 @@
                     document.getElementById('borrowBtn').style.display = 'inline-block';
                 }
             } catch (error) {
-                console.error('Error loading book:', error);
+                handleApiError(error, 'Failed to load book details');
                 document.getElementById('bookDetail').innerHTML = 
                     '<p style="color: red;">Error loading book details. Book may not exist.</p>';
             }
@@ -100,8 +105,10 @@
         
         async function borrowBook() {
             if (!isLoggedIn()) {
-                alert('Please login to borrow books');
-                window.location.href = 'login.html';
+                showToast('Please login to borrow books', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
                 return;
             }
             
@@ -112,8 +119,7 @@
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
             
-            borrowBtn.disabled = true;
-            borrowBtn.textContent = 'Borrowing...';
+            setButtonLoading(borrowBtn, true);
             
             try {
                 await apiClient.post('/api/loans', {
@@ -122,12 +128,14 @@
                 
                 successDiv.textContent = 'Book borrowed successfully! Redirecting to your loans...';
                 successDiv.style.display = 'block';
+                showToast('Book borrowed successfully!', 'success');
                 
                 setTimeout(() => {
                     window.location.href = 'my-loans.html';
                 }, 1500);
                 
             } catch (error) {
+                setButtonLoading(borrowBtn, false);
                 let errorMessage = 'Failed to borrow book. ';
                 
                 if (error.message.includes('400')) {
@@ -140,9 +148,7 @@
                 
                 errorDiv.textContent = errorMessage;
                 errorDiv.style.display = 'block';
-                
-                borrowBtn.disabled = false;
-                borrowBtn.textContent = 'Borrow This Book';
+                showToast(errorMessage, 'error');
                 
                 console.error('Borrow error:', error);
             }

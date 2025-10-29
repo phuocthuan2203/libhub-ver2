@@ -33,6 +33,7 @@
 
     <script src="js/api-client.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/ui-utils.js"></script>
     <script>
         requireAuth();
         updateNavigation();
@@ -43,18 +44,36 @@
             
             errorDiv.style.display = 'none';
             
+            document.getElementById('activeList').innerHTML = '<div class="skeleton skeleton-card"></div>';
+            document.getElementById('historyList').innerHTML = '<div class="skeleton skeleton-card"></div>';
+            
             try {
                 const loans = await apiClient.get(`/api/loans/user/${userId}`, true);
                 
-                const active = loans.filter(l => l.status === 'CheckedOut');
-                const history = loans.filter(l => l.status !== 'CheckedOut');
+                const uniqueBookIds = [...new Set(loans.map(l => l.bookId))];
+                const bookPromises = uniqueBookIds.map(id => 
+                    apiClient.get(`/api/books/${id}`).catch(() => ({ bookId: id, title: 'Unknown Book' }))
+                );
+                const books = await Promise.all(bookPromises);
+                const bookMap = {};
+                books.forEach(book => {
+                    bookMap[book.bookId] = book.title;
+                });
+                
+                const loansWithBooks = loans.map(loan => ({
+                    ...loan,
+                    bookTitle: bookMap[loan.bookId] || 'Unknown Book'
+                }));
+                
+                const active = loansWithBooks.filter(l => l.status === 'CheckedOut');
+                const history = loansWithBooks.filter(l => l.status !== 'CheckedOut');
                 
                 renderActiveLoans(active);
                 renderHistory(history);
             } catch (error) {
-                console.error('Error loading loans:', error);
-                errorDiv.textContent = 'Error loading your loans. Please try again.';
-                errorDiv.style.display = 'block';
+                handleApiError(error, 'Failed to load your loans');
+                document.getElementById('activeList').innerHTML = '<div class="empty-state"><p>Error loading loans</p></div>';
+                document.getElementById('historyList').innerHTML = '';
             }
         }
         
@@ -75,8 +94,8 @@
                 
                 return `
                     <div class="loan-card ${isOverdue ? 'overdue' : ''}">
-                        <h4>Loan #${loan.loanId}</h4>
-                        <p><strong>Book ID:</strong> ${loan.bookId}</p>
+                        <h4>${loan.bookTitle}</h4>
+                        <p><strong>Loan ID:</strong> #${loan.loanId}</p>
                         <p><strong>Checked Out:</strong> ${formatDate(loan.checkoutDate)}</p>
                         <p><strong>Due Date:</strong> ${formatDate(loan.dueDate)}</p>
                         <p><strong>Status:</strong> ${daysInfo}</p>
@@ -101,8 +120,8 @@
             
             container.innerHTML = loans.map(loan => `
                 <div class="loan-card">
-                    <h4>Loan #${loan.loanId}</h4>
-                    <p><strong>Book ID:</strong> ${loan.bookId}</p>
+                    <h4>${loan.bookTitle}</h4>
+                    <p><strong>Loan ID:</strong> #${loan.loanId}</p>
                     <p><strong>Checked Out:</strong> ${formatDate(loan.checkoutDate)}</p>
                     <p><strong>Due Date:</strong> ${formatDate(loan.dueDate)}</p>
                     <p><strong>Status:</strong> ${loan.status}</p>
@@ -125,11 +144,15 @@
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
             
+            const overlay = showLoadingOverlay('Returning book...');
+            
             try {
                 await apiClient.put(`/api/loans/${loanId}/return`, null, true);
                 
+                hideLoadingOverlay();
                 successDiv.textContent = 'Book returned successfully!';
                 successDiv.style.display = 'block';
+                showToast('Book returned successfully!', 'success');
                 
                 setTimeout(() => {
                     successDiv.style.display = 'none';
@@ -137,7 +160,8 @@
                 }, 1500);
                 
             } catch (error) {
-                console.error('Return error:', error);
+                hideLoadingOverlay();
+                handleApiError(error, 'Failed to return book');
                 errorDiv.textContent = 'Failed to return book. Please try again.';
                 errorDiv.style.display = 'block';
             }

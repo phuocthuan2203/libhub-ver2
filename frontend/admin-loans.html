@@ -29,7 +29,7 @@
                 <tr>
                     <th>Loan ID</th>
                     <th>User ID</th>
-                    <th>Book ID</th>
+                    <th>Book Name</th>
                     <th>Status</th>
                     <th>Checkout Date</th>
                     <th>Due Date</th>
@@ -46,6 +46,7 @@
 
     <script src="js/api-client.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/ui-utils.js"></script>
     <script>
         requireAdmin();
         updateNavigation();
@@ -55,15 +56,33 @@
         
         async function loadAllLoans() {
             const errorDiv = document.getElementById('errorMessage');
+            const tbody = document.getElementById('loansList');
             errorDiv.style.display = 'none';
             
+            tbody.innerHTML = '<tr><td colspan="7"><div class="skeleton skeleton-text"></div></td></tr>';
+            
             try {
-                allLoans = await apiClient.get('/api/loans', true);
+                const loans = await apiClient.get('/api/loans', true);
+                
+                const uniqueBookIds = [...new Set(loans.map(l => l.bookId))];
+                const bookPromises = uniqueBookIds.map(id => 
+                    apiClient.get(`/api/books/${id}`).catch(() => ({ bookId: id, title: 'Unknown Book' }))
+                );
+                const books = await Promise.all(bookPromises);
+                const bookMap = {};
+                books.forEach(book => {
+                    bookMap[book.bookId] = book.title;
+                });
+                
+                allLoans = loans.map(loan => ({
+                    ...loan,
+                    bookTitle: bookMap[loan.bookId] || 'Unknown Book'
+                }));
+                
                 filterLoans(currentFilter);
             } catch (error) {
-                console.error('Error loading loans:', error);
-                errorDiv.textContent = 'Error loading loans. Please try again.';
-                errorDiv.style.display = 'block';
+                handleApiError(error, 'Failed to load loans');
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error loading loans</td></tr>';
             }
         }
         
@@ -116,7 +135,7 @@
                     <tr ${rowClass}>
                         <td>${loan.loanId}</td>
                         <td>${loan.userId}</td>
-                        <td>${loan.bookId}</td>
+                        <td>${loan.bookTitle}</td>
                         <td>
                             ${loan.status}
                             ${loan.isOverdue ? '<span class="overdue-badge">OVERDUE</span>' : ''}
