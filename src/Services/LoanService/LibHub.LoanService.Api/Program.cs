@@ -106,12 +106,12 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<LoanDbContext>();
     try
     {
-        dbContext.Database.Migrate();
-        app.Logger.LogInformation("Database migrations applied successfully for LoanService.");
+        dbContext.Database.EnsureCreated();
+        app.Logger.LogInformation("Database created successfully for LoanService.");
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "Failed to apply database migrations for LoanService.");
+        app.Logger.LogError(ex, "Failed to create database for LoanService.");
         throw;
     }
 }

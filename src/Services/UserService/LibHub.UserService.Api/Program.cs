@@ -100,12 +100,12 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
     try
     {
-        dbContext.Database.Migrate();
-        app.Logger.LogInformation("Database migrations applied successfully for UserService.");
+        dbContext.Database.EnsureCreated();
+        app.Logger.LogInformation("Database created successfully for UserService.");
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "Failed to apply database migrations for UserService.");
+        app.Logger.LogError(ex, "Failed to create database for UserService.");
         throw;
     }
 }

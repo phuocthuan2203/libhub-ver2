@@ -96,15 +96,15 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
     try
     {
-        dbContext.Database.Migrate();
-        app.Logger.LogInformation("Database migrations applied successfully for CatalogService.");
+        dbContext.Database.EnsureCreated();
+        app.Logger.LogInformation("Database created successfully for CatalogService.");
         
         await LibHub.CatalogService.Infrastructure.Data.BookSeeder.SeedBooksAsync(dbContext);
         app.Logger.LogInformation("Book seed data initialized successfully.");
     }
     catch (Exception ex)
     {
-        app.Logger.LogError(ex, "Failed to apply database migrations for CatalogService.");
+        app.Logger.LogError(ex, "Failed to create database for CatalogService.");
         throw;
     }
 }
