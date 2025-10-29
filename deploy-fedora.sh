@@ -59,13 +59,18 @@ echo "[6/6] Building and starting containers..."
 docker compose up -d --build
 
 echo ""
-echo "[7/7] Waiting for services to be ready..."
-echo "This may take up to 60 seconds..."
-sleep 60
+echo "[7/8] Waiting for services to be ready..."
+echo "This may take up to 30 seconds..."
+sleep 30
 
 echo ""
 echo "Checking service health..."
 docker compose ps
+
+echo ""
+echo "[8/8] Initializing databases and applying seed data..."
+chmod +x ./scripts/apply-seed-data.sh
+./scripts/apply-seed-data.sh
 
 echo ""
 echo "====================================="

@@ -16,11 +16,12 @@ services:
       - "0.0.0.0:3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     environment:
       MYSQL_ROOT_PASSWORD: LibHub@2025
       MYSQL_USER: libhub_user
       MYSQL_PASSWORD: LibHub@Dev2025
+    command: >
+      --default-authentication-plugin=mysql_native_password
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
