@@ -1,8 +1,8 @@
 USE user_db;
 INSERT INTO Users (Username, Email, HashedPassword, Role, CreatedAt, UpdatedAt)
 VALUES 
-('admin', 'admin@libhub.com', '$2a$11$5vz6V5W4Mz5B0jL0j5Qvqe5L8a8b5N5B5V5W4Mz5B0jL0j5Qvqe', 'Admin', NOW(), NOW()),
-('testuser', 'test@libhub.com', '$2a$11$5vz6V5W4Mz5B0jL0j5Qvqe5L8a8b5N5B5V5W4Mz5B0jL0j5Qvqe', 'Customer', NOW(), NOW())
+('admin', 'admin@libhub.com', '$2a$11$8Z7qZ8J5K9L2M3N4O5P6Q.uV3W4X5Y6Z7A8B9C0D1E2F3G4H5I6J7K', 'Admin', NOW(), NOW()),
+('testuser', 'test@libhub.com', '$2a$11$9Z7qZ8J5K9L2M3N4O5P6Q.vW3X4Y5Z6A7B8C9D0E1F2G3H4I5J6K7L', 'Customer', NOW(), NOW())
 ON DUPLICATE KEY UPDATE UpdatedAt=NOW();
 
 USE catalog_db;
