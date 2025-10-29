@@ -55,6 +55,7 @@
 
     <script src="js/api-client.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/ui-utils.js"></script>
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -65,6 +66,7 @@
             const confirmPassword = document.getElementById('confirmPassword').value;
             const errorDiv = document.getElementById('errorMessage');
             const successDiv = document.getElementById('successMessage');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
             
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
@@ -72,14 +74,18 @@
             if (password !== confirmPassword) {
                 errorDiv.textContent = 'Passwords do not match.';
                 errorDiv.style.display = 'block';
+                showToast('Passwords do not match', 'error');
                 return;
             }
             
             if (!validatePassword(password)) {
                 errorDiv.textContent = getPasswordValidationMessage(password);
                 errorDiv.style.display = 'block';
+                showToast('Password does not meet requirements', 'error');
                 return;
             }
+            
+            setButtonLoading(submitBtn, true);
             
             try {
                 await apiClient.post('/api/users/register', {
@@ -90,6 +96,7 @@
                 
                 successDiv.textContent = 'Registration successful! Logging you in...';
                 successDiv.style.display = 'block';
+                showToast('Registration successful!', 'success');
                 
                 setTimeout(async () => {
                     try {
@@ -101,8 +108,10 @@
                         saveToken(loginData.accessToken);
                         window.location.href = 'index.html';
                     } catch (loginError) {
+                        setButtonLoading(submitBtn, false);
                         errorDiv.textContent = 'Registration successful but auto-login failed. Please login manually.';
                         errorDiv.style.display = 'block';
+                        showToast('Please login manually', 'warning');
                         setTimeout(() => {
                             window.location.href = 'login.html';
                         }, 2000);
@@ -110,6 +119,7 @@
                 }, 1000);
                 
             } catch (error) {
+                setButtonLoading(submitBtn, false);
                 let errorMessage = 'Registration failed. ';
                 if (error.message.includes('409')) {
                     errorMessage += 'Email already exists.';
@@ -120,6 +130,7 @@
                 }
                 errorDiv.textContent = errorMessage;
                 errorDiv.style.display = 'block';
+                showToast(errorMessage, 'error');
                 console.error('Registration error:', error);
             }
         });

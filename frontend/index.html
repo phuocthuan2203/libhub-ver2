@@ -7,10 +7,7 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <nav>
-        <h1>LibHub</h1>
-        <div id="navLinks"></div>
-    </nav>
+    <nav></nav>
 
     <div class="container">
         <div class="search-section">
@@ -44,10 +41,19 @@
 
     <script src="js/api-client.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/ui-utils.js"></script>
     <script>
         updateNavigation();
         
+        let isLoading = false;
+        
         async function loadBooks(search = '', genre = '') {
+            if (isLoading) return;
+            
+            isLoading = true;
+            showSkeletonLoading('bookGrid', 6);
+            document.getElementById('emptyState').style.display = 'none';
+            
             try {
                 const params = new URLSearchParams();
                 if (search) params.append('search', search);
@@ -59,9 +65,11 @@
                 const books = await apiClient.get(endpoint);
                 renderBooks(books);
             } catch (error) {
-                console.error('Error loading books:', error);
-                document.getElementById('bookGrid').innerHTML = 
-                    '<p style="color: red;">Error loading books. Please try again.</p>';
+                handleApiError(error, 'Failed to load books');
+                document.getElementById('bookGrid').innerHTML = '';
+                document.getElementById('emptyState').style.display = 'block';
+            } finally {
+                isLoading = false;
             }
         }
         
@@ -78,6 +86,8 @@
             grid.style.display = 'grid';
             emptyState.style.display = 'none';
             
+            const loggedIn = isLoggedIn();
+            
             grid.innerHTML = books.map(book => `
                 <div class="book-card">
                     <h3>${escapeHtml(book.title)}</h3>
@@ -87,9 +97,18 @@
                     <p class="availability ${book.isAvailable ? '' : 'unavailable'}">
                         ${book.availableCopies} of ${book.totalCopies} available
                     </p>
-                    <button onclick="viewDetails(${book.bookId})" class="btn-primary">
-                        View Details
-                    </button>
+                    <div class="book-card-actions">
+                        <button onclick="viewDetails(${book.bookId})" class="btn-primary">
+                            View Details
+                        </button>
+                        ${loggedIn ? `
+                            <button onclick="borrowBookFromCard(${book.bookId}, ${book.isAvailable})" 
+                                    class="btn-borrow" 
+                                    ${!book.isAvailable ? 'disabled' : ''}>
+                                ${book.isAvailable ? 'Borrow' : 'Unavailable'}
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             `).join('');
         }
@@ -104,16 +123,72 @@
             window.location.href = `book-detail.html?id=${bookId}`;
         }
         
+        async function borrowBookFromCard(bookId, isAvailable) {
+            if (!isLoggedIn()) {
+                showToast('Please login to borrow books', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+            
+            if (!isAvailable) {
+                showToast('This book is currently unavailable', 'error');
+                return;
+            }
+            
+            const overlay = showLoadingOverlay('Borrowing book...');
+            
+            try {
+                await apiClient.post('/api/loans', {
+                    bookId: parseInt(bookId)
+                }, true);
+                
+                hideLoadingOverlay();
+                showToast('Book borrowed successfully!', 'success');
+                
+                setTimeout(() => {
+                    loadBooks();
+                }, 1500);
+                
+            } catch (error) {
+                hideLoadingOverlay();
+                let errorMessage = 'Failed to borrow book. ';
+                
+                if (error.message.includes('400')) {
+                    errorMessage += 'You may have reached the maximum loan limit (5 books).';
+                } else if (error.message.includes('401')) {
+                    errorMessage += 'Please login again.';
+                } else {
+                    errorMessage += 'Please try again later.';
+                }
+                
+                showToast(errorMessage, 'error');
+            }
+        }
+        
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
         
+        const debouncedSearch = debounce(() => {
+            const search = document.getElementById('searchInput').value;
+            const genre = document.getElementById('genreFilter').value;
+            loadBooks(search, genre);
+        }, 500);
+        
+        document.getElementById('searchInput').addEventListener('input', debouncedSearch);
+        
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 searchBooks();
             }
+        });
+        
+        document.getElementById('genreFilter').addEventListener('change', () => {
+            searchBooks();
         });
         
         loadBooks();
