@@ -126,4 +126,6 @@ app.MapControllers();
 
 app.UseConsulServiceRegistration(app.Configuration, app.Lifetime);
 
+app.Logger.LogInformation("UserService starting on port 5002");
+
 app.Run();
