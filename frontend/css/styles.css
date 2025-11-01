@@ -447,13 +447,15 @@ button[type="submit"]:hover, .btn-primary:hover {
 .book-card-actions {
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 0.5rem;
     margin-top: auto;
     flex-wrap: nowrap;
 }
 
 .book-card-actions .btn-primary,
-.book-card-actions .btn-success {
+.book-card-actions .btn-success,
+.book-card-actions .btn-borrow {
     flex: 1;
     text-align: center;
     padding: 0.75rem 1rem;
@@ -463,6 +465,8 @@ button[type="submit"]:hover, .btn-primary:hover {
     align-items: center;
     justify-content: center;
     white-space: nowrap;
+    margin: 0;
+    line-height: 1;
 }
 
 .btn-borrow {
