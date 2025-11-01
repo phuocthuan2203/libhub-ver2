@@ -16,16 +16,6 @@
                 <input type="text" id="searchInput" placeholder="Search by title, author, or ISBN...">
                 <select id="genreFilter">
                     <option value="">All Genres</option>
-                    <option value="Fiction">Fiction</option>
-                    <option value="Non-Fiction">Non-Fiction</option>
-                    <option value="Science">Science</option>
-                    <option value="History">History</option>
-                    <option value="Biography">Biography</option>
-                    <option value="Fantasy">Fantasy</option>
-                    <option value="Mystery">Mystery</option>
-                    <option value="Romance">Romance</option>
-                    <option value="Thriller">Thriller</option>
-                    <option value="Self-Help">Self-Help</option>
                 </select>
                 <button onclick="searchBooks()" class="btn-primary">Search</button>
             </div>
@@ -46,6 +36,30 @@
         updateNavigation();
         
         let isLoading = false;
+        let allGenres = new Set();
+        
+        async function loadGenres() {
+            try {
+                const books = await apiClient.get('/api/books');
+                books.forEach(book => {
+                    if (book.genre) {
+                        allGenres.add(book.genre);
+                    }
+                });
+                
+                const genreFilter = document.getElementById('genreFilter');
+                genreFilter.innerHTML = '<option value="">All Genres</option>';
+                
+                Array.from(allGenres).sort().forEach(genre => {
+                    const option = document.createElement('option');
+                    option.value = genre;
+                    option.textContent = genre;
+                    genreFilter.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load genres:', error);
+            }
+        }
         
         async function loadBooks(search = '', genre = '') {
             if (isLoading) return;
@@ -191,6 +205,7 @@
             searchBooks();
         });
         
+        loadGenres();
         loadBooks();
     </script>
 </body>
