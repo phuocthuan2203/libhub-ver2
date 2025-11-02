@@ -16,6 +16,7 @@ services:
       - "0.0.0.0:3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
     environment:
       MYSQL_ROOT_PASSWORD: LibHub@2025
       MYSQL_USER: libhub_user
