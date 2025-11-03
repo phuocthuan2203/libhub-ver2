@@ -33,7 +33,7 @@ services:
   userservice:
     build:
       context: .
-      dockerfile: src/Services/UserService/LibHub.UserService.Api/Dockerfile
+      dockerfile: src/Services/UserService/Dockerfile
     ports:
       - "5002"
     depends_on:
