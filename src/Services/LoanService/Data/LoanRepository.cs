@@ -1,13 +1,13 @@
-using LibHub.LoanService.Domain;
+using LibHub.LoanService.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace LibHub.LoanService.Infrastructure.Repositories;
+namespace LibHub.LoanService.Data;
 
-public class EfLoanRepository : ILoanRepository
+public class LoanRepository
 {
     private readonly LoanDbContext _context;
 
-    public EfLoanRepository(LoanDbContext context)
+    public LoanRepository(LoanDbContext context)
     {
         _context = context;
     }
@@ -67,3 +67,4 @@ public class EfLoanRepository : ILoanRepository
         await _context.SaveChangesAsync();
     }
 }
+

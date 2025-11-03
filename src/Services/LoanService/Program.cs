@@ -1,15 +1,11 @@
 using System.Text;
-using LibHub.LoanService.Application.Interfaces;
-using LibHub.LoanService.Application.Services;
-using LibHub.LoanService.Domain;
-using LibHub.LoanService.Infrastructure;
-using LibHub.LoanService.Infrastructure.HttpClients;
-using LibHub.LoanService.Infrastructure.Repositories;
+using LibHub.LoanService.Data;
+using LibHub.LoanService.Clients;
+using LibHub.LoanService.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using LibHub.LoanService.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,13 +15,12 @@ builder.Services.AddDbContext<LoanDbContext>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
 
-builder.Services.AddScoped<ILoanRepository, EfLoanRepository>();
-
-builder.Services.AddScoped<LoanApplicationService>();
+builder.Services.AddScoped<LoanRepository>();
+builder.Services.AddScoped<LibHub.LoanService.Services.LoanService>();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddHttpClient<ICatalogServiceClient, CatalogServiceHttpClient>(client =>
+builder.Services.AddHttpClient<ICatalogServiceClient, CatalogServiceClient>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ExternalServices:CatalogServiceBaseUrl"]!);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -133,3 +128,4 @@ app.MapControllers();
 app.UseConsulServiceRegistration(app.Configuration, app.Lifetime);
 
 app.Run();
+

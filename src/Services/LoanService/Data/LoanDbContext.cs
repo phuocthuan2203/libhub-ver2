@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using LibHub.LoanService.Domain;
+using LibHub.LoanService.Models.Entities;
 
-namespace LibHub.LoanService.Infrastructure;
+namespace LibHub.LoanService.Data;
 
 public class LoanDbContext : DbContext
 {
@@ -41,3 +41,4 @@ public class LoanDbContext : DbContext
         });
     }
 }
+

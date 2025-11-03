@@ -1,6 +1,6 @@
-namespace LibHub.LoanService.Application.DTOs;
+namespace LibHub.LoanService.Models.Responses;
 
-public class BookDto
+public class BookResponse
 {
     public int BookId { get; set; }
     public string Isbn { get; set; } = string.Empty;
@@ -12,3 +12,4 @@ public class BookDto
     public int AvailableCopies { get; set; }
     public bool IsAvailable { get; set; }
 }
+

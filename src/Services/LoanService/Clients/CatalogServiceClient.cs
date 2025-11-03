@@ -1,19 +1,16 @@
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
-using LibHub.LoanService.Application.DTOs;
-using LibHub.LoanService.Application.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using LibHub.LoanService.Models.Responses;
 
-namespace LibHub.LoanService.Infrastructure.HttpClients;
+namespace LibHub.LoanService.Clients;
 
-public class CatalogServiceHttpClient : ICatalogServiceClient
+public class CatalogServiceClient : ICatalogServiceClient
 {
     private readonly HttpClient _httpClient;
-    private readonly ILogger<CatalogServiceHttpClient> _logger;
+    private readonly ILogger<CatalogServiceClient> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CatalogServiceHttpClient(HttpClient httpClient, ILogger<CatalogServiceHttpClient> logger, IHttpContextAccessor httpContextAccessor)
+    public CatalogServiceClient(HttpClient httpClient, ILogger<CatalogServiceClient> logger, IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
         _logger = logger;
@@ -29,14 +26,14 @@ public class CatalogServiceHttpClient : ICatalogServiceClient
         }
     }
 
-    public async Task<BookDto> GetBookAsync(int bookId)
+    public async Task<BookResponse> GetBookAsync(int bookId)
     {
         try
         {
             var response = await _httpClient.GetAsync($"/api/books/{bookId}");
             response.EnsureSuccessStatusCode();
 
-            var book = await response.Content.ReadFromJsonAsync<BookDto>();
+            var book = await response.Content.ReadFromJsonAsync<BookResponse>();
             if (book == null)
                 throw new Exception($"Failed to deserialize book data for BookId {bookId}");
 
@@ -93,3 +90,4 @@ public class CatalogServiceHttpClient : ICatalogServiceClient
         }
     }
 }
+

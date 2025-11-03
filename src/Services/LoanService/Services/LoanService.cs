@@ -1,29 +1,30 @@
-using LibHub.LoanService.Application.DTOs;
-using LibHub.LoanService.Application.Interfaces;
-using LibHub.LoanService.Domain;
-using Microsoft.Extensions.Logging;
+using LibHub.LoanService.Models.Entities;
+using LibHub.LoanService.Models.Requests;
+using LibHub.LoanService.Models.Responses;
+using LibHub.LoanService.Data;
+using LibHub.LoanService.Clients;
 
-namespace LibHub.LoanService.Application.Services;
+namespace LibHub.LoanService.Services;
 
-public class LoanApplicationService
+public class LoanService
 {
-    private readonly ILoanRepository _loanRepository;
+    private readonly LoanRepository _loanRepository;
     private readonly ICatalogServiceClient _catalogService;
-    private readonly ILogger<LoanApplicationService> _logger;
+    private readonly ILogger<LoanService> _logger;
 
-    public LoanApplicationService(
-        ILoanRepository loanRepository,
+    public LoanService(
+        LoanRepository loanRepository,
         ICatalogServiceClient catalogService,
-        ILogger<LoanApplicationService> logger)
+        ILogger<LoanService> logger)
     {
         _loanRepository = loanRepository;
         _catalogService = catalogService;
         _logger = logger;
     }
 
-    public async Task<LoanDto> BorrowBookAsync(int userId, CreateLoanDto dto)
+    public async Task<LoanResponse> BorrowBookAsync(int userId, BorrowBookRequest request)
     {
-        _logger.LogInformation("Starting Saga: BorrowBook for UserId={UserId}, BookId={BookId}", userId, dto.BookId);
+        _logger.LogInformation("Starting Saga: BorrowBook for UserId={UserId}, BookId={BookId}", userId, request.BookId);
 
         var activeLoansCount = await _loanRepository.CountActiveLoansForUserAsync(userId);
         if (activeLoansCount >= 5)
@@ -32,28 +33,28 @@ public class LoanApplicationService
             throw new InvalidOperationException("Maximum loan limit reached (5 active loans)");
         }
 
-        var loan = new Loan(userId, dto.BookId);
+        var loan = new Loan(userId, request.BookId);
         await _loanRepository.AddAsync(loan);
         _logger.LogInformation("Saga Step 2: Created PENDING loan {LoanId}", loan.LoanId);
 
         try
         {
-            _logger.LogInformation("Saga Step 3: Verifying book availability for BookId={BookId}", dto.BookId);
-            var book = await _catalogService.GetBookAsync(dto.BookId);
+            _logger.LogInformation("Saga Step 3: Verifying book availability for BookId={BookId}", request.BookId);
+            var book = await _catalogService.GetBookAsync(request.BookId);
             
             if (!book.IsAvailable)
             {
-                _logger.LogWarning("Saga Step 3 failed: Book {BookId} is not available", dto.BookId);
+                _logger.LogWarning("Saga Step 3 failed: Book {BookId} is not available", request.BookId);
                 throw new InvalidOperationException("Book is not available");
             }
 
-            _logger.LogInformation("Saga Step 4: Decrementing stock for BookId={BookId}", dto.BookId);
-            await _catalogService.DecrementStockAsync(dto.BookId);
+            _logger.LogInformation("Saga Step 4: Decrementing stock for BookId={BookId}", request.BookId);
+            await _catalogService.DecrementStockAsync(request.BookId);
             _logger.LogInformation("Saga Step 4: Stock decremented successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Saga failed for BookId={BookId}, executing compensating transaction", dto.BookId);
+            _logger.LogError(ex, "Saga failed for BookId={BookId}, executing compensating transaction", request.BookId);
             
             if (loan.Status == "PENDING")
             {
@@ -69,7 +70,7 @@ public class LoanApplicationService
         await _loanRepository.UpdateAsync(loan);
         _logger.LogInformation("Saga Step 5: Loan {LoanId} marked as CheckedOut - Saga completed successfully", loan.LoanId);
 
-        return MapToDto(loan);
+        return MapToResponse(loan);
     }
 
     public async Task ReturnBookAsync(int loanId)
@@ -91,25 +92,25 @@ public class LoanApplicationService
         }
     }
 
-    public async Task<List<LoanDto>> GetUserLoansAsync(int userId)
+    public async Task<List<LoanResponse>> GetUserLoansAsync(int userId)
     {
         var loans = await _loanRepository.GetAllLoansForUserAsync(userId);
-        return loans.Select(MapToDto).ToList();
+        return loans.Select(MapToResponse).ToList();
     }
 
-    public async Task<LoanDto?> GetLoanByIdAsync(int loanId)
+    public async Task<LoanResponse?> GetLoanByIdAsync(int loanId)
     {
         var loan = await _loanRepository.GetByIdAsync(loanId);
-        return loan == null ? null : MapToDto(loan);
+        return loan == null ? null : MapToResponse(loan);
     }
 
-    public async Task<List<LoanDto>> GetAllLoansAsync()
+    public async Task<List<LoanResponse>> GetAllLoansAsync()
     {
         var loans = await _loanRepository.GetAllActiveLoansAsync();
-        return loans.Select(MapToDto).ToList();
+        return loans.Select(MapToResponse).ToList();
     }
 
-    private LoanDto MapToDto(Loan loan) => new LoanDto
+    private LoanResponse MapToResponse(Loan loan) => new LoanResponse
     {
         LoanId = loan.LoanId,
         UserId = loan.UserId,
@@ -122,3 +123,4 @@ public class LoanApplicationService
         DaysUntilDue = loan.DaysUntilDue()
     };
 }
+

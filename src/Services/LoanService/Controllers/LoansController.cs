@@ -1,27 +1,27 @@
 using System.Security.Claims;
-using LibHub.LoanService.Application.DTOs;
-using LibHub.LoanService.Application.Services;
+using LibHub.LoanService.Models.Requests;
+using LibHub.LoanService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LibHub.LoanService.Api.Controllers;
+namespace LibHub.LoanService.Controllers;
 
 [ApiController]
 [Route("api/loans")]
 [Authorize]
 public class LoansController : ControllerBase
 {
-    private readonly LoanApplicationService _loanService;
+    private readonly LoanService.Services.LoanService _loanService;
     private readonly ILogger<LoansController> _logger;
 
-    public LoansController(LoanApplicationService loanService, ILogger<LoansController> logger)
+    public LoansController(LoanService.Services.LoanService loanService, ILogger<LoansController> logger)
     {
         _loanService = loanService;
         _logger = logger;
     }
 
     [HttpPost]
-    public async Task<IActionResult> BorrowBook(CreateLoanDto dto)
+    public async Task<IActionResult> BorrowBook(BorrowBookRequest request)
     {
         try
         {
@@ -31,7 +31,7 @@ public class LoansController : ControllerBase
                 return Unauthorized(new { message = "Invalid user token" });
             }
 
-            var loan = await _loanService.BorrowBookAsync(userId, dto);
+            var loan = await _loanService.BorrowBookAsync(userId, request);
             return CreatedAtAction(nameof(GetLoanById), new { id = loan.LoanId }, loan);
         }
         catch (InvalidOperationException ex)
@@ -143,3 +143,4 @@ public class LoansController : ControllerBase
         }
     }
 }
+

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace LibHub.LoanService.Infrastructure;
+namespace LibHub.LoanService.Data;
 
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<LoanDbContext>
 {
@@ -19,3 +19,4 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<LoanDbCont
         return new LoanDbContext(optionsBuilder.Options);
     }
 }
+

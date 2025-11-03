@@ -1,4 +1,4 @@
-namespace LibHub.LoanService.Domain;
+namespace LibHub.LoanService.Models.Entities;
 
 public class Loan
 {
@@ -67,3 +67,4 @@ public class Loan
 
     public bool IsActive() => Status == "CheckedOut";
 }
+

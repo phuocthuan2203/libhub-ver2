@@ -1,6 +1,6 @@
-namespace LibHub.LoanService.Application.DTOs;
+namespace LibHub.LoanService.Models.Responses;
 
-public class LoanDto
+public class LoanResponse
 {
     public int LoanId { get; set; }
     public int UserId { get; set; }
@@ -12,3 +12,4 @@ public class LoanDto
     public bool IsOverdue { get; set; }
     public int DaysUntilDue { get; set; }
 }
+

@@ -83,7 +83,7 @@ services:
   loanservice:
     build:
       context: .
-      dockerfile: src/Services/LoanService/LibHub.LoanService.Api/Dockerfile
+      dockerfile: src/Services/LoanService/Dockerfile
     ports:
       - "5003"
     depends_on:
