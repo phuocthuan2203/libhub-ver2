@@ -99,10 +99,10 @@
                         <p><strong>Checked Out:</strong> ${formatDate(loan.checkoutDate)}</p>
                         <p><strong>Due Date:</strong> ${formatDate(loan.dueDate)}</p>
                         <p><strong>Status:</strong> ${daysInfo}</p>
-                        <button onclick="returnBook(${loan.loanId})" class="btn-success">
+                        <button onclick="returnBook(${loan.loanId})" class="btn-primary">
                             Return Book
                         </button>
-                        <button onclick="viewBookDetails(${loan.bookId})" class="btn-secondary">
+                        <button onclick="viewBookDetails(${loan.bookId})" class="btn-primary">
                             View Book
                         </button>
                     </div>
@@ -126,7 +126,7 @@
                     <p><strong>Due Date:</strong> ${formatDate(loan.dueDate)}</p>
                     <p><strong>Status:</strong> ${loan.status}</p>
                     ${loan.returnDate ? `<p><strong>Returned:</strong> ${formatDate(loan.returnDate)}</p>` : ''}
-                    <button onclick="viewBookDetails(${loan.bookId})" class="btn-secondary">
+                    <button onclick="viewBookDetails(${loan.bookId})" class="btn-primary">
                         View Book
                     </button>
                 </div>

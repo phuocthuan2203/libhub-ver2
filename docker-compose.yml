@@ -34,7 +34,7 @@ services:
   userservice:
     build:
       context: .
-      dockerfile: src/Services/UserService/LibHub.UserService.Api/Dockerfile
+      dockerfile: src/Services/UserService/Dockerfile
     ports:
       - "5002"
     depends_on:
@@ -59,7 +59,7 @@ services:
   catalogservice:
     build:
       context: .
-      dockerfile: src/Services/CatalogService/LibHub.CatalogService.Api/Dockerfile
+      dockerfile: src/Services/CatalogService/Dockerfile
     ports:
       - "5001"
     depends_on:
@@ -84,7 +84,7 @@ services:
   loanservice:
     build:
       context: .
-      dockerfile: src/Services/LoanService/LibHub.LoanService.Api/Dockerfile
+      dockerfile: src/Services/LoanService/Dockerfile
     ports:
       - "5003"
     depends_on:
