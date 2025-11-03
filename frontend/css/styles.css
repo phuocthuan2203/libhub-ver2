@@ -140,7 +140,6 @@ nav h1:hover {
 .theme-toggle:hover {
     background: var(--primary-color);
     color: white;
-    transform: rotate(20deg);
 }
 
 #navLinks {
@@ -528,6 +527,21 @@ button[type="submit"]:hover, .btn-primary:hover {
     width: 150px;
 }
 
+.book-detail-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.book-detail-actions button {
+    flex: 1;
+    min-width: 150px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
 .loan-card {
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
@@ -560,6 +574,14 @@ button[type="submit"]:hover, .btn-primary:hover {
     padding: 0.25rem 0.75rem;
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.loan-card button {
+    margin-right: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
     font-weight: 600;
 }
 
@@ -890,5 +912,77 @@ button:disabled {
         width: 100%;
         margin-top: 0.5rem;
         margin-left: 0;
+    }
+    
+    .book-detail {
+        padding: 1.5rem;
+    }
+    
+    .book-detail h2 {
+        font-size: 1.5rem;
+    }
+    
+    .book-detail .info-label {
+        width: 100px;
+        font-size: 0.9rem;
+    }
+    
+    .book-detail-actions {
+        flex-direction: column;
+    }
+    
+    .book-detail-actions button {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .loan-card {
+        padding: 1rem;
+    }
+    
+    .loan-card button {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .book-card-actions {
+        flex-direction: column;
+    }
+    
+    .book-card-actions .btn-primary,
+    .book-card-actions .btn-success,
+    .book-card-actions .btn-borrow {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    nav h1 {
+        font-size: 1.25rem;
+    }
+    
+    .book-card {
+        padding: 1rem;
+    }
+    
+    .book-card h3 {
+        font-size: 1.1rem;
+    }
+    
+    .search-section {
+        padding: 1rem;
+    }
+    
+    .search-section h2 {
+        font-size: 1.25rem;
+    }
+    
+    .auth-container {
+        padding: 1rem;
+    }
+    
+    .auth-container h2 {
+        font-size: 1.5rem;
     }
 }
