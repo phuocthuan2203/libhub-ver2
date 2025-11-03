@@ -1,13 +1,13 @@
 using Microsoft.EntityFrameworkCore;
-using LibHub.CatalogService.Domain;
+using LibHub.CatalogService.Models.Entities;
 
-namespace LibHub.CatalogService.Infrastructure.Repositories;
+namespace LibHub.CatalogService.Data;
 
-public class EfBookRepository : IBookRepository
+public class BookRepository
 {
     private readonly CatalogDbContext _context;
 
-    public EfBookRepository(CatalogDbContext context)
+    public BookRepository(CatalogDbContext context)
     {
         _context = context;
     }
@@ -71,3 +71,4 @@ public class EfBookRepository : IBookRepository
         }
     }
 }
+

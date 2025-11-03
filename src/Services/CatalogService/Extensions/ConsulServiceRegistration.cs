@@ -1,6 +1,6 @@
 using Consul;
 
-namespace LibHub.CatalogService.Api.Extensions;
+namespace LibHub.CatalogService.Extensions;
 
 public static class ConsulServiceRegistration
 {
@@ -117,3 +117,4 @@ public static class ConsulServiceRegistration
         }
     }
 }
+

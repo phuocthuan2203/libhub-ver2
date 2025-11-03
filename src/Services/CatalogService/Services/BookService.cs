@@ -1,65 +1,67 @@
 using System.Linq;
-using LibHub.CatalogService.Application.DTOs;
-using LibHub.CatalogService.Domain;
+using LibHub.CatalogService.Models.Entities;
+using LibHub.CatalogService.Models.Requests;
+using LibHub.CatalogService.Models.Responses;
+using LibHub.CatalogService.Data;
 
-namespace LibHub.CatalogService.Application.Services;
+namespace LibHub.CatalogService.Services;
 
-public class BookApplicationService
+public class BookService
 {
-    private readonly IBookRepository _bookRepository;
+    private readonly BookRepository _bookRepository;
 
-    public BookApplicationService(IBookRepository bookRepository)
+    public BookService(BookRepository bookRepository)
     {
         _bookRepository = bookRepository;
     }
 
-    public async Task<BookDto> CreateBookAsync(CreateBookDto dto)
+    public async Task<BookResponse> CreateBookAsync(CreateBookRequest request)
     {
-        var existingBook = await _bookRepository.GetByIsbnAsync(dto.Isbn);
+        var existingBook = await _bookRepository.GetByIsbnAsync(request.Isbn);
         if (existingBook != null)
             throw new InvalidOperationException("A book with this ISBN already exists");
 
         var book = new Book(
-            dto.Isbn,
-            dto.Title,
-            dto.Author,
-            dto.Genre,
-            dto.Description,
-            dto.TotalCopies);
+            request.Isbn,
+            request.Title,
+            request.Author,
+            request.Genre,
+            request.Description,
+            request.TotalCopies);
 
         await _bookRepository.AddAsync(book);
 
-        return MapToDto(book);
+        return MapToResponse(book);
     }
 
-    public async Task<BookDto> GetBookByIdAsync(int bookId)
+    public async Task<BookResponse> GetBookByIdAsync(int bookId)
     {
         var book = await _bookRepository.GetByIdAsync(bookId);
         if (book == null)
             throw new KeyNotFoundException($"Book with ID {bookId} not found");
 
-        return MapToDto(book);
+        return MapToResponse(book);
     }
 
-    public async Task<List<BookDto>> SearchBooksAsync(string? searchTerm = null, string? genre = null)
+    public async Task<List<BookResponse>> SearchBooksAsync(string? searchTerm = null, string? genre = null)
     {
         var books = await _bookRepository.SearchAsync(searchTerm, genre);
-        return books.Select(MapToDto).ToList();
+        return books.Select(MapToResponse).ToList();
     }
 
-    public async Task<List<BookDto>> GetAllBooksAsync()
+    public async Task<List<BookResponse>> GetAllBooksAsync()
     {
         var books = await _bookRepository.GetAllAsync();
-        return books.Select(MapToDto).ToList();
+        return books.Select(MapToResponse).ToList();
     }
 
-    public async Task UpdateBookAsync(int bookId, UpdateBookDto dto)
+    public async Task UpdateBookAsync(int bookId, UpdateBookRequest request)
     {
         var book = await _bookRepository.GetByIdAsync(bookId);
         if (book == null)
             throw new KeyNotFoundException($"Book with ID {bookId} not found");
 
-        book.UpdateDetails(dto.Title, dto.Author, dto.Genre, dto.Description);
+        book.UpdateDetails(request.Title, request.Author, request.Genre, request.Description);
         await _bookRepository.UpdateAsync(book);
     }
 
@@ -76,17 +78,17 @@ public class BookApplicationService
         await _bookRepository.DeleteAsync(bookId);
     }
 
-    public async Task UpdateStockAsync(int bookId, UpdateStockDto dto)
+    public async Task UpdateStockAsync(int bookId, UpdateStockRequest request)
     {
         var book = await _bookRepository.GetByIdAsync(bookId);
         if (book == null)
             throw new KeyNotFoundException($"Book with ID {bookId} not found");
 
-        if (dto.ChangeAmount < 0)
+        if (request.ChangeAmount < 0)
         {
             book.DecrementStock();
         }
-        else if (dto.ChangeAmount > 0)
+        else if (request.ChangeAmount > 0)
         {
             book.IncrementStock();
         }
@@ -94,9 +96,9 @@ public class BookApplicationService
         await _bookRepository.UpdateAsync(book);
     }
 
-    private static BookDto MapToDto(Book book)
+    private static BookResponse MapToResponse(Book book)
     {
-        return new BookDto
+        return new BookResponse
         {
             BookId = book.BookId,
             Isbn = book.Isbn,
@@ -111,3 +113,4 @@ public class BookApplicationService
         };
     }
 }
+

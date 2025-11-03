@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace LibHub.CatalogService.Domain;
+namespace LibHub.CatalogService.Models.Entities;
 
 public class Book
 {
@@ -130,3 +130,4 @@ public class Book
             throw new ArgumentException("Total copies cannot be negative", nameof(totalCopies));
     }
 }
+

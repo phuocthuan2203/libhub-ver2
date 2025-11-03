@@ -1,6 +1,6 @@
-namespace LibHub.CatalogService.Application.DTOs;
+namespace LibHub.CatalogService.Models.Responses;
 
-public class BookDto
+public class BookResponse
 {
     public int BookId { get; set; }
     public string Isbn { get; set; } = string.Empty;
@@ -13,3 +13,4 @@ public class BookDto
     public bool IsAvailable { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+

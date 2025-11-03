@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace LibHub.CatalogService.Infrastructure;
+namespace LibHub.CatalogService.Data;
 
 public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<CatalogDbContext>
 {
@@ -19,3 +19,4 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<CatalogDbC
         return new CatalogDbContext(optionsBuilder.Options);
     }
 }
+

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using LibHub.CatalogService.Domain;
+using LibHub.CatalogService.Models.Entities;
 
-namespace LibHub.CatalogService.Infrastructure;
+namespace LibHub.CatalogService.Data;
 
 public class CatalogDbContext : DbContext
 {
@@ -51,3 +51,4 @@ public class CatalogDbContext : DbContext
         });
     }
 }
+

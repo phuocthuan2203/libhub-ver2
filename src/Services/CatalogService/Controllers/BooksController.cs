@@ -1,19 +1,20 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using LibHub.CatalogService.Application.DTOs;
-using LibHub.CatalogService.Application.Services;
+using LibHub.CatalogService.Models.Requests;
+using LibHub.CatalogService.Models.Responses;
+using LibHub.CatalogService.Services;
 
-namespace LibHub.CatalogService.Api.Controllers;
+namespace LibHub.CatalogService.Controllers;
 
 [ApiController]
 [Route("api/books")]
 public class BooksController : ControllerBase
 {
-    private readonly BookApplicationService _bookService;
+    private readonly BookService _bookService;
     private readonly ILogger<BooksController> _logger;
 
     public BooksController(
-        BookApplicationService bookService,
+        BookService bookService,
         ILogger<BooksController> logger)
     {
         _bookService = bookService;
@@ -21,7 +22,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<BookDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<BookResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBooks(
         [FromQuery] string? search, 
         [FromQuery] string? genre)
@@ -39,7 +40,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(BookDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetBookById(int id)
     {
@@ -61,15 +62,15 @@ public class BooksController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(BookDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(BookResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> CreateBook([FromBody] CreateBookDto dto)
+    public async Task<IActionResult> CreateBook([FromBody] CreateBookRequest request)
     {
         try
         {
-            var book = await _bookService.CreateBookAsync(dto);
+            var book = await _bookService.CreateBookAsync(request);
             _logger.LogInformation("Book created: {BookId} - {Title}", book.BookId, book.Title);
             
             return CreatedAtAction(nameof(GetBookById), new { id = book.BookId }, book);
@@ -97,11 +98,11 @@ public class BooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateBook(int id, [FromBody] UpdateBookDto dto)
+    public async Task<IActionResult> UpdateBook(int id, [FromBody] UpdateBookRequest request)
     {
         try
         {
-            await _bookService.UpdateBookAsync(id, dto);
+            await _bookService.UpdateBookAsync(id, request);
             _logger.LogInformation("Book updated: {BookId}", id);
             
             return NoContent();
@@ -158,12 +159,12 @@ public class BooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateStockDto dto)
+    public async Task<IActionResult> UpdateStock(int id, [FromBody] UpdateStockRequest request)
     {
         try
         {
-            await _bookService.UpdateStockAsync(id, dto);
-            _logger.LogInformation("Stock updated for book {BookId}: {ChangeAmount}", id, dto.ChangeAmount);
+            await _bookService.UpdateStockAsync(id, request);
+            _logger.LogInformation("Stock updated for book {BookId}: {ChangeAmount}", id, request.ChangeAmount);
             
             return NoContent();
         }
@@ -183,3 +184,4 @@ public class BooksController : ControllerBase
         }
     }
 }
+

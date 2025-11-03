@@ -1,7 +1,7 @@
-using LibHub.CatalogService.Domain;
+using LibHub.CatalogService.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace LibHub.CatalogService.Infrastructure.Data;
+namespace LibHub.CatalogService.Data;
 
 public static class BookSeeder
 {
@@ -140,3 +140,4 @@ public static class BookSeeder
         await context.SaveChangesAsync();
     }
 }
+

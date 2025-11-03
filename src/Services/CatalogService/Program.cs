@@ -3,11 +3,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using LibHub.CatalogService.Application.Services;
-using LibHub.CatalogService.Domain;
-using LibHub.CatalogService.Infrastructure;
-using LibHub.CatalogService.Infrastructure.Repositories;
-using LibHub.CatalogService.Api.Extensions;
+using LibHub.CatalogService.Data;
+using LibHub.CatalogService.Services;
+using LibHub.CatalogService.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,9 +79,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddScoped<BookApplicationService>();
-
-builder.Services.AddScoped<IBookRepository, EfBookRepository>();
+builder.Services.AddScoped<BookRepository>();
+builder.Services.AddScoped<BookService>();
 
 builder.Services.AddConsulServiceRegistration(builder.Configuration);
 
@@ -99,7 +96,7 @@ using (var scope = app.Services.CreateScope())
         dbContext.Database.EnsureCreated();
         app.Logger.LogInformation("Database created successfully for CatalogService.");
         
-        await LibHub.CatalogService.Infrastructure.Data.BookSeeder.SeedBooksAsync(dbContext);
+        await BookSeeder.SeedBooksAsync(dbContext);
         app.Logger.LogInformation("Book seed data initialized successfully.");
     }
     catch (Exception ex)
@@ -126,3 +123,4 @@ app.MapControllers();
 app.UseConsulServiceRegistration(app.Configuration, app.Lifetime);
 
 app.Run();
+
