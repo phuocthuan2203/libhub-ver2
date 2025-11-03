@@ -426,6 +426,31 @@ git commit -m "..."
 
 ---
 
+### **Issue 6: Ocelot QoS Requires Polly Package**
+
+**Problem:** When adding QoS (Quality of Service) options to ocelot.json, Gateway fails to start with error: "Unable to start Ocelot because either a Route or GlobalConfiguration are using QoSOptions but no QosDelegatingHandlerDelegate has been registered".
+
+**Solution:**
+```xml
+<PackageReference Include="Ocelot.Provider.Polly" Version="20.0.*" />
+```
+
+```csharp
+using Ocelot.Provider.Polly;
+
+builder.Services.AddOcelot(builder.Configuration)
+    .AddConsul()
+    .AddPolly();
+```
+
+**Prevention:**
+- When adding QoS options (circuit breaker, timeout, etc.) to Ocelot routes, always add Polly package
+- Polly provides the resilience and transient-fault-handling capabilities
+- QoS options include: ExceptionsAllowedBeforeBreaking, DurationOfBreak, TimeoutValue
+- Remember to add both the NuGet package AND the using directive
+
+---
+
 ## 📝 Self-Improvement Instructions for AI Agents
 
 **⚠️ CRITICAL - THIS IS MANDATORY, NOT OPTIONAL ⚠️**

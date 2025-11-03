@@ -2,27 +2,37 @@
   "Routes": [
     {
       "UpstreamPathTemplate": "/api/users/register",
-      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamHttpMethod": [ "POST" ],
       "DownstreamPathTemplate": "/api/users/register",
       "DownstreamScheme": "http",
       "ServiceName": "userservice",
       "LoadBalancerOptions": {
         "Type": "RoundRobin"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 10000
       }
     },
     {
       "UpstreamPathTemplate": "/api/users/login",
-      "UpstreamHttpMethod": [ "Post" ],
+      "UpstreamHttpMethod": [ "POST" ],
       "DownstreamPathTemplate": "/api/users/login",
       "DownstreamScheme": "http",
       "ServiceName": "userservice",
       "LoadBalancerOptions": {
         "Type": "RoundRobin"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 10000
       }
     },
     {
       "UpstreamPathTemplate": "/api/users/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ],
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/users/{everything}",
       "DownstreamScheme": "http",
       "ServiceName": "userservice",
@@ -31,31 +41,46 @@
       },
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 10000
       }
     },
     {
       "UpstreamPathTemplate": "/api/books",
-      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamHttpMethod": [ "GET" ],
       "DownstreamPathTemplate": "/api/books",
       "DownstreamScheme": "http",
       "ServiceName": "catalogservice",
       "LoadBalancerOptions": {
         "Type": "RoundRobin"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 10000
       }
     },
     {
       "UpstreamPathTemplate": "/api/books/{id}",
-      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamHttpMethod": [ "GET" ],
       "DownstreamPathTemplate": "/api/books/{id}",
       "DownstreamScheme": "http",
       "ServiceName": "catalogservice",
       "LoadBalancerOptions": {
         "Type": "RoundRobin"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 10000
       }
     },
     {
       "UpstreamPathTemplate": "/api/books/{everything}",
-      "UpstreamHttpMethod": [ "Post", "Put", "Delete" ],
+      "UpstreamHttpMethod": [ "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/books/{everything}",
       "DownstreamScheme": "http",
       "ServiceName": "catalogservice",
@@ -64,11 +89,16 @@
       },
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 10000
       }
     },
     {
       "UpstreamPathTemplate": "/api/loans",
-      "UpstreamHttpMethod": [ "Post", "Get" ],
+      "UpstreamHttpMethod": [ "POST", "GET" ],
       "DownstreamPathTemplate": "/api/loans",
       "DownstreamScheme": "http",
       "ServiceName": "loanservice",
@@ -77,11 +107,16 @@
       },
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 10000
       }
     },
     {
       "UpstreamPathTemplate": "/api/loans/{everything}",
-      "UpstreamHttpMethod": [ "Get", "Put", "Delete" ],
+      "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/loans/{everything}",
       "DownstreamScheme": "http",
       "ServiceName": "loanservice",
@@ -90,6 +125,11 @@
       },
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer"
+      },
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 5000,
+        "TimeoutValue": 10000
       }
     }
   ],
@@ -100,6 +140,11 @@
       "Host": "consul",
       "Port": 8500,
       "Type": "Consul"
+    },
+    "QoSOptions": {
+      "ExceptionsAllowedBeforeBreaking": 3,
+      "DurationOfBreak": 5000,
+      "TimeoutValue": 10000
     }
   }
 }
