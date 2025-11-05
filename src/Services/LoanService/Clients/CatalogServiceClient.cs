@@ -26,11 +26,30 @@ public class CatalogServiceClient : ICatalogServiceClient
         }
     }
 
+    private void PropagateCorrelationId()
+    {
+        // Propagate Correlation ID to downstream service
+        var correlationId = _httpContextAccessor.HttpContext?.Request.Headers["X-Correlation-ID"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(correlationId))
+        {
+            // Remove old header if exists, then add new one
+            _httpClient.DefaultRequestHeaders.Remove("X-Correlation-ID");
+            _httpClient.DefaultRequestHeaders.Add("X-Correlation-ID", correlationId);
+        }
+    }
+
     public async Task<BookResponse> GetBookAsync(int bookId)
     {
         try
         {
+            PropagateCorrelationId();
+            
+            _logger.LogInformation("🔗 Calling CatalogService: GET /api/books/{BookId}", bookId);
+
             var response = await _httpClient.GetAsync($"/api/books/{bookId}");
+            
+            _logger.LogInformation("📨 CatalogService response: {StatusCode}", response.StatusCode);
+            
             response.EnsureSuccessStatusCode();
 
             var book = await response.Content.ReadFromJsonAsync<BookResponse>();
@@ -51,8 +70,14 @@ public class CatalogServiceClient : ICatalogServiceClient
         try
         {
             SetAuthorizationHeader();
+            PropagateCorrelationId();
+            
+            _logger.LogInformation("🔗 Calling CatalogService: PUT /api/books/{BookId}/stock (decrement)", bookId);
+            
             var stockDto = new { ChangeAmount = -1 };
             var response = await _httpClient.PutAsJsonAsync($"/api/books/{bookId}/stock", stockDto);
+
+            _logger.LogInformation("📨 CatalogService response: {StatusCode}", response.StatusCode);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -74,8 +99,14 @@ public class CatalogServiceClient : ICatalogServiceClient
         try
         {
             SetAuthorizationHeader();
+            PropagateCorrelationId();
+            
+            _logger.LogInformation("🔗 Calling CatalogService: PUT /api/books/{BookId}/stock (increment)", bookId);
+            
             var stockDto = new { ChangeAmount = 1 };
             var response = await _httpClient.PutAsJsonAsync($"/api/books/{bookId}/stock", stockDto);
+
+            _logger.LogInformation("📨 CatalogService response: {StatusCode}", response.StatusCode);
 
             if (!response.IsSuccessStatusCode)
             {

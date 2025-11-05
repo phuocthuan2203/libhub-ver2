@@ -5,8 +5,18 @@ class ApiClient {
         this.baseUrl = baseUrl;
     }
     
+    generateCorrelationId() {
+        return `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+    
     async get(endpoint, requiresAuth = false) {
         const headers = { 'Content-Type': 'application/json' };
+        
+        // Add Correlation ID for request tracing
+        const correlationId = this.generateCorrelationId();
+        headers['X-Correlation-ID'] = correlationId;
+        console.log(`🔍 Track request: ${correlationId} - GET ${endpoint}`);
+        
         if (requiresAuth) {
             const token = localStorage.getItem('jwt_token');
             if (token) {
@@ -28,6 +38,12 @@ class ApiClient {
     
     async post(endpoint, data, requiresAuth = false) {
         const headers = { 'Content-Type': 'application/json' };
+        
+        // Add Correlation ID for request tracing
+        const correlationId = this.generateCorrelationId();
+        headers['X-Correlation-ID'] = correlationId;
+        console.log(`🔍 Track request: ${correlationId} - POST ${endpoint}`);
+        
         if (requiresAuth) {
             const token = localStorage.getItem('jwt_token');
             if (token) {
@@ -51,6 +67,12 @@ class ApiClient {
     
     async put(endpoint, data = null, requiresAuth = false) {
         const headers = { 'Content-Type': 'application/json' };
+        
+        // Add Correlation ID for request tracing
+        const correlationId = this.generateCorrelationId();
+        headers['X-Correlation-ID'] = correlationId;
+        console.log(`🔍 Track request: ${correlationId} - PUT ${endpoint}`);
+        
         if (requiresAuth) {
             const token = localStorage.getItem('jwt_token');
             if (token) {
@@ -79,6 +101,12 @@ class ApiClient {
     
     async delete(endpoint, requiresAuth = false) {
         const headers = { 'Content-Type': 'application/json' };
+        
+        // Add Correlation ID for request tracing
+        const correlationId = this.generateCorrelationId();
+        headers['X-Correlation-ID'] = correlationId;
+        console.log(`🔍 Track request: ${correlationId} - DELETE ${endpoint}`);
+        
         if (requiresAuth) {
             const token = localStorage.getItem('jwt_token');
             if (token) {

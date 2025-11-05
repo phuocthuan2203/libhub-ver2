@@ -8,6 +8,7 @@ using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Provider.Consul;
 using Ocelot.Provider.Polly;
+using LibHub.Gateway.Api.Middleware;
 using Serilog;
 using Serilog.Events;
 
@@ -21,7 +22,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
     .Enrich.WithThreadId()
     .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}")
     .WriteTo.Seq("http://seq:5341")
     .CreateLogger();
 
@@ -105,6 +106,8 @@ app.UseExceptionHandler(errorApp =>
         await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse));
     });
 });
+
+app.UseCorrelationId(); // ✅ ADD THIS - Must be early in pipeline
 
 app.UseCors();
 

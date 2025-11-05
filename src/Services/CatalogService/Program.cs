@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using LibHub.CatalogService.Data;
 using LibHub.CatalogService.Services;
 using LibHub.CatalogService.Extensions;
+using LibHub.CatalogService.Middleware;
 using Serilog;
 using Serilog.Events;
 
@@ -19,7 +20,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
     .Enrich.WithThreadId()
     .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] [{CorrelationId}] {Message:lj}{NewLine}{Exception}")
     .WriteTo.Seq("http://seq:5341")
     .CreateLogger();
 
@@ -134,6 +135,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCorrelationId(); // ✅ ADD THIS - Must be early in pipeline
 
 app.UseCors();
 
