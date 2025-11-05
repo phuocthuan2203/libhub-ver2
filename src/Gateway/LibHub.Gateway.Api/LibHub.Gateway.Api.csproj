@@ -11,6 +11,12 @@
     <PackageReference Include="Ocelot" Version="20.0.*" />
     <PackageReference Include="Ocelot.Provider.Consul" Version="20.0.*" />
     <PackageReference Include="Ocelot.Provider.Polly" Version="20.0.*" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="9.0.0" />
   </ItemGroup>
 
 </Project>
