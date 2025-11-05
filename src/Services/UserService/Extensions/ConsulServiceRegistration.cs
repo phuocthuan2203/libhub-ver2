@@ -44,9 +44,9 @@ public static class ConsulServiceRegistration
             Check = new AgentServiceCheck
             {
                 HTTP = $"http://{serviceHost}:{servicePort}/health",
-                Interval = TimeSpan.FromSeconds(10),
-                Timeout = TimeSpan.FromSeconds(5),
-                DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(1)
+                Interval = TimeSpan.FromSeconds(10),    // Check every 10 seconds
+                Timeout = TimeSpan.FromSeconds(5),       // Wait 5 seconds for response
+                DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(1)  // Keep service for 1 min after failures before removing
             }
         };
 
@@ -55,6 +55,13 @@ public static class ConsulServiceRegistration
             await RegisterWithRetryAsync(consulClient, registration, logger, serviceId, serviceName);
         });
 
+        // REMOVED: Immediate deregistration on shutdown
+        // Let Consul handle service removal through health check failures
+        // Service will show as critical (X icon) after health checks fail
+        // After DeregisterCriticalServiceAfter duration, Consul will remove it automatically
+        
+        // Optional: Uncomment below if you want immediate deregistration on graceful shutdown
+        /*
         lifetime.ApplicationStopping.Register(() =>
         {
             try
@@ -68,6 +75,7 @@ public static class ConsulServiceRegistration
                 logger.LogWarning(ex, "Failed to deregister service {ServiceId} from Consul", serviceId);
             }
         });
+        */
 
         return app;
     }
