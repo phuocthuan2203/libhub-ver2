@@ -6,8 +6,31 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configure Serilog BEFORE creating the builder
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("ServiceName", "LoanService")
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Seq("http://seq:5341")
+    .CreateLogger();
+
+try
+{
+    Log.Information("Starting {ServiceName}", "LoanService");
+    
+    var builder = WebApplication.CreateBuilder(args);
+    
+    // USE SERILOG instead of default logging
+    builder.Host.UseSerilog();
 
 builder.Services.AddDbContext<LoanDbContext>(options =>
     options.UseMySql(
@@ -127,5 +150,20 @@ app.MapControllers();
 
 app.UseConsulServiceRegistration(app.Configuration, app.Lifetime);
 
-app.Run();
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    var urls = app.Urls.Any() ? string.Join(", ", app.Urls) : "default URLs";
+    Log.Information("{ServiceName} started successfully listening on {Urls}", "LoanService", urls);
+});
 
+app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "{ServiceName} failed to start", "LoanService");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}

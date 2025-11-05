@@ -7,8 +7,31 @@ using LibHub.UserService.Data;
 using LibHub.UserService.Security;
 using LibHub.UserService.Services;
 using LibHub.UserService.Extensions;
+using Serilog;
+using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configure Serilog BEFORE creating the builder
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("ServiceName", "UserService")
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Seq("http://seq:5341")
+    .CreateLogger();
+
+try
+{
+    Log.Information("Starting {ServiceName}", "UserService");
+    
+    var builder = WebApplication.CreateBuilder(args);
+    
+    // USE SERILOG instead of default logging
+    builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 
@@ -123,7 +146,20 @@ app.MapControllers();
 
 app.UseConsulServiceRegistration(app.Configuration, app.Lifetime);
 
-app.Logger.LogInformation("UserService starting on port 5002");
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    var urls = app.Urls.Any() ? string.Join(", ", app.Urls) : "default URLs";
+    Log.Information("{ServiceName} started successfully listening on {Urls}", "UserService", urls);
+});
 
 app.Run();
-
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "{ServiceName} failed to start", "UserService");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}

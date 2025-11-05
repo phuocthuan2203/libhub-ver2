@@ -8,8 +8,31 @@ using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Provider.Consul;
 using Ocelot.Provider.Polly;
+using Serilog;
+using Serilog.Events;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configure Serilog BEFORE creating the builder
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("ServiceName", "Gateway")
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [{ServiceName}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Seq("http://seq:5341")
+    .CreateLogger();
+
+try
+{
+    Log.Information("Starting {ServiceName}", "Gateway");
+    
+    var builder = WebApplication.CreateBuilder(args);
+    
+    // USE SERILOG instead of default logging
+    builder.Host.UseSerilog();
 
 builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 
@@ -101,4 +124,20 @@ app.Use(async (context, next) =>
 
 await app.UseOcelot();
 
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    var urls = app.Urls.Any() ? string.Join(", ", app.Urls) : "default URLs";
+    Log.Information("{ServiceName} started successfully listening on {Urls}", "Gateway", urls);
+});
+
 app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "{ServiceName} failed to start", "Gateway");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
