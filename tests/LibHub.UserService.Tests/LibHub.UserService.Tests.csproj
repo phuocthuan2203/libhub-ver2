@@ -25,10 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Services\UserService\LibHub.UserService.Domain\LibHub.UserService.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Services\UserService\LibHub.UserService.Application\LibHub.UserService.Application.csproj" />
-    <ProjectReference Include="..\..\src\Services\UserService\LibHub.UserService.Infrastructure\LibHub.UserService.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Services\UserService\LibHub.UserService.Api\LibHub.UserService.Api.csproj" />
+    <ProjectReference Include="..\..\src\Services\UserService\LibHub.UserService.csproj" />
+    <ProjectReference Include="..\..\src\Gateway\LibHub.Gateway.Api\LibHub.Gateway.Api.csproj" />
   </ItemGroup>
 
 </Project>

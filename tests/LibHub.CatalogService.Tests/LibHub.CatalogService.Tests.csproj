@@ -23,8 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Services\CatalogService\LibHub.CatalogService.Domain\LibHub.CatalogService.Domain.csproj" />
-    <ProjectReference Include="..\..\src\Services\CatalogService\LibHub.CatalogService.Application\LibHub.CatalogService.Application.csproj" />
+    <ProjectReference Include="..\..\src\Services\CatalogService\LibHub.CatalogService.csproj" />
   </ItemGroup>
 
 </Project>
