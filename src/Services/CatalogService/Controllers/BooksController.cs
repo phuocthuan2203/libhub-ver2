@@ -163,23 +163,38 @@ public class BooksController : ControllerBase
     {
         try
         {
+            var operation = request.ChangeAmount > 0 ? "increment" : "decrement";
+            _logger.LogInformation(
+                "📦 [STOCK-UPDATE-START] {Operation} stock | BookId: {BookId} | ChangeAmount: {ChangeAmount}", 
+                operation, id, request.ChangeAmount);
+            
             await _bookService.UpdateStockAsync(id, request);
-            _logger.LogInformation("Stock updated for book {BookId}: {ChangeAmount}", id, request.ChangeAmount);
+            
+            _logger.LogInformation(
+                "✅ [STOCK-UPDATE-SUCCESS] Stock updated | BookId: {BookId} | ChangeAmount: {ChangeAmount}", 
+                id, request.ChangeAmount);
             
             return NoContent();
         }
         catch (KeyNotFoundException)
         {
+            _logger.LogWarning(
+                "❌ [STOCK-UPDATE-FAILED] Book not found | BookId: {BookId}", 
+                id);
             return NotFound(new { message = "Book not found" });
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning("Stock update failed for book {BookId}: {Message}", id, ex.Message);
+            _logger.LogWarning(
+                "❌ [STOCK-UPDATE-FAILED] Invalid operation | BookId: {BookId} | Reason: {Reason}", 
+                id, ex.Message);
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating stock for book {BookId}", id);
+            _logger.LogError(ex, 
+                "❌ [STOCK-UPDATE-ERROR] Unexpected error | BookId: {BookId}", 
+                id);
             return StatusCode(500, new { message = "An error occurred" });
         }
     }

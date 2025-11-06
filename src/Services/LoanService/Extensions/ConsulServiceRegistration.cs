@@ -92,13 +92,13 @@ public static class ConsulServiceRegistration
             try
             {
                 logger.LogInformation(
-                    "Attempting to register service {ServiceName} (ID: {ServiceId}) with Consul (Attempt {Attempt}/{MaxAttempts})",
-                    serviceName, serviceId, attempt + 1, RetryDelays.Length);
+                    "🔌 [CONSUL-REGISTER] Service: {ServiceName} | ID: {ServiceId} | Address: {Address}:{Port} | Health: {HealthUrl} | Attempt: {Attempt}/{MaxAttempts}",
+                    serviceName, serviceId, registration.Address, registration.Port, registration.Check.HTTP, attempt + 1, RetryDelays.Length);
 
                 await consulClient.Agent.ServiceRegister(registration);
                 
                 logger.LogInformation(
-                    "Successfully registered service {ServiceName} (ID: {ServiceId}) with Consul at {Address}:{Port}",
+                    "✅ [CONSUL-SUCCESS] Service: {ServiceName} | ID: {ServiceId} | Address: {Address}:{Port} registered successfully",
                     serviceName, serviceId, registration.Address, registration.Port);
                 
                 return;
@@ -110,13 +110,13 @@ public static class ConsulServiceRegistration
                 if (isLastAttempt)
                 {
                     logger.LogError(ex,
-                        "Failed to register service {ServiceName} (ID: {ServiceId}) with Consul after {Attempts} attempts. Service will continue without Consul registration.",
+                        "❌ [CONSUL-FAILED] Service: {ServiceName} | ID: {ServiceId} | Failed after {Attempts} attempts. Service will continue without Consul registration.",
                         serviceName, serviceId, RetryDelays.Length);
                 }
                 else
                 {
                     logger.LogWarning(ex,
-                        "Failed to register service {ServiceName} with Consul (Attempt {Attempt}/{MaxAttempts}). Retrying in {Delay} seconds...",
+                        "⚠️ [CONSUL-RETRY] Service: {ServiceName} | Attempt: {Attempt}/{MaxAttempts} | Retrying in {Delay}s",
                         serviceName, attempt + 1, RetryDelays.Length, RetryDelays[attempt].TotalSeconds);
                     
                     await Task.Delay(RetryDelays[attempt]);
