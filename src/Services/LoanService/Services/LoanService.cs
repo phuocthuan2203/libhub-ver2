@@ -24,71 +24,128 @@ public class LoanService
 
     public async Task<LoanResponse> BorrowBookAsync(int userId, BorrowBookRequest request)
     {
-        _logger.LogInformation("Starting Saga: BorrowBook for UserId={UserId}, BookId={BookId}", userId, request.BookId);
+        _logger.LogInformation(
+            "🚀 [SAGA-START] BorrowBook | UserId: {UserId} | BookId: {BookId}", 
+            userId, request.BookId);
 
+        // Check loan limit
         var activeLoansCount = await _loanRepository.CountActiveLoansForUserAsync(userId);
         if (activeLoansCount >= 5)
         {
-            _logger.LogWarning("Saga aborted: User {UserId} has reached max loan limit", userId);
+            _logger.LogWarning(
+                "💥 [SAGA-FAILED] User has reached max loan limit | UserId: {UserId} | ActiveLoans: {ActiveLoans}", 
+                userId, activeLoansCount);
             throw new InvalidOperationException("Maximum loan limit reached (5 active loans)");
         }
 
+        // Create PENDING loan
         var loan = new Loan(userId, request.BookId);
         await _loanRepository.AddAsync(loan);
-        _logger.LogInformation("Saga Step 2: Created PENDING loan {LoanId}", loan.LoanId);
+        _logger.LogInformation(
+            "📝 [SAGA-STEP-1] Loan record created | LoanId: {LoanId} | Status: PENDING", 
+            loan.LoanId);
 
         try
         {
-            _logger.LogInformation("Saga Step 3: Verifying book availability for BookId={BookId}", request.BookId);
+            // Verify book availability
+            _logger.LogInformation(
+                "🔍 [SAGA-STEP-2] Checking book availability | BookId: {BookId}", 
+                request.BookId);
+            
             var book = await _catalogService.GetBookAsync(request.BookId);
             
             if (!book.IsAvailable)
             {
-                _logger.LogWarning("Saga Step 3 failed: Book {BookId} is not available", request.BookId);
+                _logger.LogWarning(
+                    "💥 [SAGA-STEP-2-FAILED] Book not available | BookId: {BookId}", 
+                    request.BookId);
                 throw new InvalidOperationException("Book is not available");
             }
 
-            _logger.LogInformation("Saga Step 4: Decrementing stock for BookId={BookId}", request.BookId);
+            _logger.LogInformation(
+                "✅ [SAGA-STEP-2-SUCCESS] Book is available | BookId: {BookId} | AvailableCopies: {AvailableCopies}", 
+                request.BookId, book.AvailableCopies);
+
+            // Decrement stock
+            _logger.LogInformation(
+                "📉 [SAGA-STEP-3] Decrementing book stock | BookId: {BookId}", 
+                request.BookId);
+            
             await _catalogService.DecrementStockAsync(request.BookId);
-            _logger.LogInformation("Saga Step 4: Stock decremented successfully");
+            
+            _logger.LogInformation(
+                "✅ [SAGA-STEP-3-SUCCESS] Stock decremented successfully | BookId: {BookId}", 
+                request.BookId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Saga failed for BookId={BookId}, executing compensating transaction", request.BookId);
+            _logger.LogError(ex, 
+                "💥 [SAGA-FAILED] Saga failed | BookId: {BookId} | Reason: {Reason}", 
+                request.BookId, ex.Message);
             
+            // Compensating transaction
             if (loan.Status == "PENDING")
             {
                 loan.MarkAsFailed();
                 await _loanRepository.UpdateAsync(loan);
-                _logger.LogInformation("Saga compensating transaction: Marked loan {LoanId} as FAILED", loan.LoanId);
+                _logger.LogWarning(
+                    "🔄 [SAGA-COMPENSATION] Marked loan as FAILED | LoanId: {LoanId}", 
+                    loan.LoanId);
             }
             
             throw new InvalidOperationException($"Failed to borrow book: {ex.Message}", ex);
         }
 
+        // Mark loan as CheckedOut
         loan.MarkAsCheckedOut();
         await _loanRepository.UpdateAsync(loan);
-        _logger.LogInformation("Saga Step 5: Loan {LoanId} marked as CheckedOut - Saga completed successfully", loan.LoanId);
+        
+        _logger.LogInformation(
+            "🎉 [SAGA-SUCCESS] Borrow completed | LoanId: {LoanId} | UserId: {UserId} | BookId: {BookId} | DueDate: {DueDate}", 
+            loan.LoanId, userId, request.BookId, loan.DueDate);
 
         return MapToResponse(loan);
     }
 
     public async Task ReturnBookAsync(int loanId)
     {
+        _logger.LogInformation(
+            "📚 [RETURN-START] Processing book return | LoanId: {LoanId}", 
+            loanId);
+        
         var loan = await _loanRepository.GetByIdAsync(loanId);
         if (loan == null)
+        {
+            _logger.LogWarning(
+                "❌ [RETURN-FAILED] Loan not found | LoanId: {LoanId}", 
+                loanId);
             throw new InvalidOperationException("Loan not found");
+        }
 
         loan.MarkAsReturned();
         await _loanRepository.UpdateAsync(loan);
+        
+        _logger.LogInformation(
+            "✅ [RETURN-STEP-1] Loan marked as returned | LoanId: {LoanId} | BookId: {BookId}", 
+            loanId, loan.BookId);
 
         try
         {
+            _logger.LogInformation(
+                "📈 [RETURN-STEP-2] Incrementing book stock | BookId: {BookId}", 
+                loan.BookId);
+            
             await _catalogService.IncrementStockAsync(loan.BookId);
+            
+            _logger.LogInformation(
+                "🎉 [RETURN-SUCCESS] Return completed successfully | LoanId: {LoanId} | BookId: {BookId}", 
+                loanId, loan.BookId);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to increment stock for book {BookId}", loan.BookId);
+            _logger.LogWarning(ex, 
+                "⚠️ [RETURN-WARNING] Failed to increment stock but return recorded | LoanId: {LoanId} | BookId: {BookId}", 
+                loanId, loan.BookId);
         }
     }
 

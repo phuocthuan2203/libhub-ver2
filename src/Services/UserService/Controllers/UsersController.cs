@@ -27,24 +27,37 @@ public class UsersController : ControllerBase
     {
         try
         {
+            _logger.LogInformation(
+                "📝 [REGISTER-ATTEMPT] Registration attempt | Email: {Email}", 
+                request.Email);
+            
             var user = await _userService.RegisterAsync(request);
-            _logger.LogInformation("User registered: {Email}", user.Email);
+            
+            _logger.LogInformation(
+                "✅ [REGISTER-SUCCESS] User registered successfully | Email: {Email} | UserId: {UserId}", 
+                user.Email, user.UserId);
             
             return CreatedAtAction(nameof(GetUserById), new { id = user.UserId }, user);
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning("Registration validation failed: {Message}", ex.Message);
+            _logger.LogWarning(
+                "❌ [REGISTER-FAILED] Validation error | Email: {Email} | Reason: {Reason}", 
+                request.Email, ex.Message);
             return BadRequest(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning("Registration failed: {Message}", ex.Message);
+            _logger.LogWarning(
+                "❌ [REGISTER-FAILED] Registration failed | Email: {Email} | Reason: {Reason}", 
+                request.Email, ex.Message);
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Registration error");
+            _logger.LogError(ex, 
+                "❌ [REGISTER-ERROR] Registration error | Email: {Email}", 
+                request.Email);
             return StatusCode(500, new { message = "An error occurred during registration" });
         }
     }
@@ -56,19 +69,30 @@ public class UsersController : ControllerBase
     {
         try
         {
+            _logger.LogInformation(
+                "🔐 [LOGIN-ATTEMPT] Login attempt | Email: {Email}", 
+                request.Email);
+            
             var token = await _userService.LoginAsync(request);
-            _logger.LogInformation("User logged in: {Email}", request.Email);
+            
+            _logger.LogInformation(
+                "✅ [LOGIN-SUCCESS] User logged in successfully | Email: {Email}", 
+                request.Email);
             
             return Ok(token);
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning("Login failed: {Message}", ex.Message);
+            _logger.LogWarning(
+                "❌ [LOGIN-FAILED] Invalid credentials | Email: {Email} | Reason: {Reason}", 
+                request.Email, ex.Message);
             return Unauthorized(new { message = "Invalid email or password" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Login error");
+            _logger.LogError(ex, 
+                "❌ [LOGIN-ERROR] Login error | Email: {Email}", 
+                request.Email);
             return StatusCode(500, new { message = "An error occurred during login" });
         }
     }

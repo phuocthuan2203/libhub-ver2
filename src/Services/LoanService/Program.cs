@@ -143,6 +143,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseCorrelationId(); // ✅ ADD THIS - Must be early in pipeline
 
+app.UseHealthCheckLogging(); // ✅ ADD THIS - Log health check requests
+
 app.UseCors("AllowAll");
 
 app.UseAuthentication();

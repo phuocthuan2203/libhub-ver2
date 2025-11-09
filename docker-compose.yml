@@ -1,4 +1,18 @@
 services:
+  seq:
+    image: datalust/seq:2024.1
+    container_name: libhub-seq
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_RETENTION_DAYS=7
+    ports:
+      - "0.0.0.0:5341:80"
+    volumes:
+      - seq-data:/data
+    networks:
+      - libhub-network
+    restart: unless-stopped
+
   consul:
     image: consul:1.15
     container_name: libhub-consul
@@ -42,6 +56,8 @@ services:
         condition: service_healthy
       consul:
         condition: service_started
+      seq:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=user_db;User=libhub_user;Password=LibHub@Dev2025;
@@ -53,6 +69,7 @@ services:
       - ServiceConfig__ServiceName=userservice
       - ServiceConfig__ServiceHost=userservice
       - ServiceConfig__ServicePort=5002
+      - Serilog__WriteTo__1__Args__serverUrl=http://seq:80
     networks:
       - libhub-network
 
@@ -67,6 +84,8 @@ services:
         condition: service_healthy
       consul:
         condition: service_started
+      seq:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=catalog_db;User=libhub_user;Password=LibHub@Dev2025;
@@ -78,6 +97,7 @@ services:
       - ServiceConfig__ServiceName=catalogservice
       - ServiceConfig__ServiceHost=catalogservice
       - ServiceConfig__ServicePort=5001
+      - Serilog__WriteTo__1__Args__serverUrl=http://seq:80
     networks:
       - libhub-network
 
@@ -94,6 +114,8 @@ services:
         condition: service_started
       consul:
         condition: service_started
+      seq:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=loan_db;User=libhub_user;Password=LibHub@Dev2025;
@@ -106,6 +128,7 @@ services:
       - ServiceConfig__ServiceName=loanservice
       - ServiceConfig__ServiceHost=loanservice
       - ServiceConfig__ServicePort=5003
+      - Serilog__WriteTo__1__Args__serverUrl=http://seq:80
     networks:
       - libhub-network
 
@@ -117,10 +140,16 @@ services:
     ports:
       - "0.0.0.0:5000:5000"
     depends_on:
-      - consul
-      - userservice
-      - catalogservice
-      - loanservice
+      consul:
+        condition: service_started
+      seq:
+        condition: service_started
+      userservice:
+        condition: service_started
+      catalogservice:
+        condition: service_started
+      loanservice:
+        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Jwt__SecretKey=LibHub_SuperSecret_256BitKey_ForDevelopment_ChangeInProduction!
@@ -128,6 +157,7 @@ services:
       - Jwt__Audience=LibHub.Clients
       - Consul__Host=consul
       - Consul__Port=8500
+      - Serilog__WriteTo__1__Args__serverUrl=http://seq:80
     networks:
       - libhub-network
 
@@ -149,3 +179,4 @@ networks:
 
 volumes:
   mysql-data:
+  seq-data:

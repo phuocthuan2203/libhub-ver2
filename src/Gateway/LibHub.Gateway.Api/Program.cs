@@ -54,16 +54,33 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         
         options.Events = new JwtBearerEvents
         {
+            OnTokenValidated = context =>
+            {
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                var userId = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var email = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                var role = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                
+                logger.LogInformation(
+                    "✅ [JWT-SUCCESS] Token validated | UserId: {UserId} | Email: {Email} | Role: {Role}",
+                    userId, email, role);
+                
+                return Task.CompletedTask;
+            },
             OnAuthenticationFailed = context =>
             {
                 var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                logger.LogWarning("Authentication failed: {Message}", context.Exception.Message);
+                logger.LogWarning(
+                    "❌ [JWT-FAILED] Authentication failed | Reason: {Reason} | Exception: {Message}",
+                    context.Exception.GetType().Name, context.Exception.Message);
                 return Task.CompletedTask;
             },
             OnChallenge = context =>
             {
                 var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                logger.LogWarning("Authentication challenge: {Error}", context.Error);
+                logger.LogWarning(
+                    "⚠️ [JWT-CHALLENGE] Authentication challenge | Error: {Error} | ErrorDescription: {ErrorDescription}",
+                    context.Error, context.ErrorDescription);
                 return Task.CompletedTask;
             }
         };
