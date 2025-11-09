@@ -3,6 +3,7 @@ using LibHub.LoanService.Data;
 using LibHub.LoanService.Clients;
 using LibHub.LoanService.Extensions;
 using LibHub.LoanService.Middleware;
+using LibHub.LoanService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -44,10 +45,15 @@ builder.Services.AddScoped<LibHub.LoanService.Services.LoanService>();
 
 builder.Services.AddHttpContextAccessor();
 
+// Register Consul service discovery
+builder.Services.AddSingleton<IServiceDiscovery, ConsulServiceDiscovery>();
+
+// Register HttpClient for CatalogService WITHOUT base address (will be resolved dynamically via Consul)
 builder.Services.AddHttpClient<ICatalogServiceClient, CatalogServiceClient>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ExternalServices:CatalogServiceBaseUrl"]!);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(30);
+    // No BaseAddress - will be resolved dynamically from Consul
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

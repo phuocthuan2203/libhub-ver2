@@ -1,18 +1,25 @@
 using System.Net.Http.Json;
 using System.Net.Http.Headers;
 using LibHub.LoanService.Models.Responses;
+using LibHub.LoanService.Services;
 
 namespace LibHub.LoanService.Clients;
 
 public class CatalogServiceClient : ICatalogServiceClient
 {
     private readonly HttpClient _httpClient;
+    private readonly IServiceDiscovery _serviceDiscovery;
     private readonly ILogger<CatalogServiceClient> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public CatalogServiceClient(HttpClient httpClient, ILogger<CatalogServiceClient> logger, IHttpContextAccessor httpContextAccessor)
+    public CatalogServiceClient(
+        HttpClient httpClient, 
+        IServiceDiscovery serviceDiscovery,
+        ILogger<CatalogServiceClient> logger, 
+        IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
+        _serviceDiscovery = serviceDiscovery;
         _logger = logger;
         _httpContextAccessor = httpContextAccessor;
     }
@@ -44,11 +51,16 @@ public class CatalogServiceClient : ICatalogServiceClient
         {
             PropagateCorrelationId();
             
-            _logger.LogInformation("🔗 Calling CatalogService: GET /api/books/{BookId}", bookId);
-
-            var response = await _httpClient.GetAsync($"/api/books/{bookId}");
+            // Discover CatalogService URL from Consul
+            var catalogServiceUrl = await _serviceDiscovery.GetServiceUrlAsync("catalogservice");
             
-            _logger.LogInformation("📨 CatalogService response: {StatusCode}", response.StatusCode);
+            _logger.LogInformation("🔗 [INTER-SERVICE] Calling CatalogService at {ServiceUrl}: GET /api/books/{BookId}", 
+                catalogServiceUrl, bookId);
+
+            var response = await _httpClient.GetAsync($"{catalogServiceUrl}/api/books/{bookId}");
+            
+            _logger.LogInformation("📨 [INTER-SERVICE] CatalogService response: {StatusCode} for GET /api/books/{BookId}", 
+                response.StatusCode, bookId);
             
             response.EnsureSuccessStatusCode();
 
@@ -60,7 +72,7 @@ public class CatalogServiceClient : ICatalogServiceClient
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get book {BookId} from CatalogService", bookId);
+            _logger.LogError(ex, "❌ [INTER-SERVICE] Failed to get book {BookId} from CatalogService", bookId);
             throw;
         }
     }
@@ -72,24 +84,29 @@ public class CatalogServiceClient : ICatalogServiceClient
             SetAuthorizationHeader();
             PropagateCorrelationId();
             
-            _logger.LogInformation("🔗 Calling CatalogService: PUT /api/books/{BookId}/stock (decrement)", bookId);
+            // Discover CatalogService URL from Consul
+            var catalogServiceUrl = await _serviceDiscovery.GetServiceUrlAsync("catalogservice");
+            
+            _logger.LogInformation("🔗 [INTER-SERVICE] Calling CatalogService at {ServiceUrl}: PUT /api/books/{BookId}/stock (decrement)", 
+                catalogServiceUrl, bookId);
             
             var stockDto = new { ChangeAmount = -1 };
-            var response = await _httpClient.PutAsJsonAsync($"/api/books/{bookId}/stock", stockDto);
+            var response = await _httpClient.PutAsJsonAsync($"{catalogServiceUrl}/api/books/{bookId}/stock", stockDto);
 
-            _logger.LogInformation("📨 CatalogService response: {StatusCode}", response.StatusCode);
+            _logger.LogInformation("📨 [INTER-SERVICE] CatalogService response: {StatusCode} for PUT /api/books/{BookId}/stock", 
+                response.StatusCode, bookId);
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to decrement stock for book {BookId}: {StatusCode} - {Error}", 
+                _logger.LogError("❌ [INTER-SERVICE] Failed to decrement stock for book {BookId}: {StatusCode} - {Error}", 
                     bookId, response.StatusCode, errorContent);
                 throw new Exception($"Failed to decrement stock: {response.StatusCode}");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to decrement stock for book {BookId}", bookId);
+            _logger.LogError(ex, "❌ [INTER-SERVICE] Failed to decrement stock for book {BookId}", bookId);
             throw;
         }
     }
@@ -101,23 +118,28 @@ public class CatalogServiceClient : ICatalogServiceClient
             SetAuthorizationHeader();
             PropagateCorrelationId();
             
-            _logger.LogInformation("🔗 Calling CatalogService: PUT /api/books/{BookId}/stock (increment)", bookId);
+            // Discover CatalogService URL from Consul
+            var catalogServiceUrl = await _serviceDiscovery.GetServiceUrlAsync("catalogservice");
+            
+            _logger.LogInformation("🔗 [INTER-SERVICE] Calling CatalogService at {ServiceUrl}: PUT /api/books/{BookId}/stock (increment)", 
+                catalogServiceUrl, bookId);
             
             var stockDto = new { ChangeAmount = 1 };
-            var response = await _httpClient.PutAsJsonAsync($"/api/books/{bookId}/stock", stockDto);
+            var response = await _httpClient.PutAsJsonAsync($"{catalogServiceUrl}/api/books/{bookId}/stock", stockDto);
 
-            _logger.LogInformation("📨 CatalogService response: {StatusCode}", response.StatusCode);
+            _logger.LogInformation("📨 [INTER-SERVICE] CatalogService response: {StatusCode} for PUT /api/books/{BookId}/stock", 
+                response.StatusCode, bookId);
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning("Failed to increment stock for book {BookId}: {StatusCode} - {Error}", 
+                _logger.LogWarning("⚠️ [INTER-SERVICE] Failed to increment stock for book {BookId}: {StatusCode} - {Error}", 
                     bookId, response.StatusCode, errorContent);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to increment stock for book {BookId}", bookId);
+            _logger.LogWarning(ex, "⚠️ [INTER-SERVICE] Failed to increment stock for book {BookId}", bookId);
         }
     }
 }
