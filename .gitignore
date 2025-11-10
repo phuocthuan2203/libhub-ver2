@@ -46,6 +46,9 @@ msbuild.wrn
 # Rider
 .idea/
 
+# GitHub Copilot Instructions (project-specific, not for version control)
+.github/
+
 # User secrets
 **/appsettings.Development.json
 **/appsettings.*.json
