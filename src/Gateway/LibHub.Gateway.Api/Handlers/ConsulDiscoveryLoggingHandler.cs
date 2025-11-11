@@ -21,17 +21,17 @@ public class ConsulDiscoveryLoggingHandler : DelegatingHandler
         var serviceName = request.RequestUri?.Host ?? "unknown";
         var method = request.Method.ToString();
         var path = request.RequestUri?.PathAndQuery ?? "/";
+        var actualUrl = request.RequestUri?.ToString() ?? "unknown";
         
         _logger.LogInformation(
-            "🔍 [CONSUL-DISCOVERY] Resolving service: {ServiceName} | Method: {Method} | Path: {Path} | CorrelationId: {CorrelationId}",
-            serviceName, method, path, correlationId);
+            "� [CONSUL-RESOLVED] Selected instance | Service: {ServiceName} | URL: {ActualUrl} | CorrelationId: {CorrelationId}",
+            serviceName, actualUrl, correlationId);
 
         var startTime = DateTime.UtcNow;
         
         var response = await base.SendAsync(request, cancellationToken);
         
         var duration = (DateTime.UtcNow - startTime).TotalMilliseconds;
-        var actualUrl = request.RequestUri?.ToString() ?? "unknown";
         
         _logger.LogInformation(
             "🎯 [DOWNSTREAM-CALL] {Method} {ActualUrl} → {StatusCode} | Duration: {Duration}ms | CorrelationId: {CorrelationId}",

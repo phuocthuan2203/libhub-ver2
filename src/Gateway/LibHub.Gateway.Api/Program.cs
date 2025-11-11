@@ -10,6 +10,7 @@ using Ocelot.Provider.Consul;
 using Ocelot.Provider.Polly;
 using LibHub.Gateway.Api.Middleware;
 using LibHub.Gateway.Api.Handlers;
+using LibHub.Gateway.Api.ServiceDiscovery;
 using Serilog;
 using Serilog.Events;
 
@@ -100,6 +101,7 @@ builder.Services.AddTransient<ConsulDiscoveryLoggingHandler>();
 builder.Services.AddOcelot(builder.Configuration)
     .AddConsul()
     .AddPolly()
+    .AddLoggingServiceDiscovery()
     .AddDelegatingHandler<ConsulDiscoveryLoggingHandler>(true);
 
 var app = builder.Build();
