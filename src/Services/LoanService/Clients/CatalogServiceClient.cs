@@ -118,7 +118,6 @@ public class CatalogServiceClient : ICatalogServiceClient
             SetAuthorizationHeader();
             PropagateCorrelationId();
             
-            // Discover CatalogService URL from Consul
             var catalogServiceUrl = await _serviceDiscovery.GetServiceUrlAsync("catalogservice");
             
             _logger.LogInformation("🔗 [INTER-SERVICE] Calling CatalogService at {ServiceUrl}: PUT /api/books/{BookId}/stock (increment)", 
@@ -133,13 +132,15 @@ public class CatalogServiceClient : ICatalogServiceClient
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning("⚠️ [INTER-SERVICE] Failed to increment stock for book {BookId}: {StatusCode} - {Error}", 
+                _logger.LogError("❌ [INTER-SERVICE] Failed to increment stock for book {BookId}: {StatusCode} - {Error}", 
                     bookId, response.StatusCode, errorContent);
+                throw new Exception($"Failed to increment stock: {response.StatusCode}");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "⚠️ [INTER-SERVICE] Failed to increment stock for book {BookId}", bookId);
+            _logger.LogError(ex, "❌ [INTER-SERVICE] Failed to increment stock for book {BookId}", bookId);
+            throw;
         }
     }
 }

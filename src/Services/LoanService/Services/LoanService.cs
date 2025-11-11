@@ -122,13 +122,25 @@ public class LoanService
             throw new InvalidOperationException("Loan not found");
         }
 
+        if (loan.Status == "Returned")
+        {
+            _logger.LogWarning(
+                "❌ [RETURN-FAILED] Loan already returned | LoanId: {LoanId}", 
+                loanId);
+            throw new InvalidOperationException("Book already returned");
+        }
+        
+        _logger.LogInformation(
+            "📝 [RETURN-STEP-1] Marking loan as returned | LoanId: {LoanId}", 
+            loanId);
+        
         loan.MarkAsReturned();
         await _loanRepository.UpdateAsync(loan);
         
         _logger.LogInformation(
-            "✅ [RETURN-STEP-1] Loan marked as returned | LoanId: {LoanId} | BookId: {BookId}", 
-            loanId, loan.BookId);
-
+            "✅ [RETURN-STEP-1-SUCCESS] Loan marked as returned | LoanId: {LoanId}", 
+            loanId);
+        
         try
         {
             _logger.LogInformation(
@@ -138,14 +150,27 @@ public class LoanService
             await _catalogService.IncrementStockAsync(loan.BookId);
             
             _logger.LogInformation(
+                "✅ [RETURN-STEP-2-SUCCESS] Stock incremented | BookId: {BookId}", 
+                loan.BookId);
+            
+            _logger.LogInformation(
                 "🎉 [RETURN-SUCCESS] Return completed successfully | LoanId: {LoanId} | BookId: {BookId}", 
                 loanId, loan.BookId);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, 
-                "⚠️ [RETURN-WARNING] Failed to increment stock but return recorded | LoanId: {LoanId} | BookId: {BookId}", 
+            _logger.LogError(ex, 
+                "💥 [RETURN-COMPENSATION-START] Stock increment failed, rolling back loan status | LoanId: {LoanId} | BookId: {BookId}", 
                 loanId, loan.BookId);
+            
+            loan.RollbackReturn();
+            await _loanRepository.UpdateAsync(loan);
+            
+            _logger.LogWarning(
+                "🔄 [RETURN-COMPENSATION-SUCCESS] Loan reverted to CheckedOut status | LoanId: {LoanId}", 
+                loanId);
+            
+            throw new InvalidOperationException($"Failed to return book: {ex.Message}", ex);
         }
     }
 

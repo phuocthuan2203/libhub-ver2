@@ -53,6 +53,15 @@ public class Loan
         ReturnDate = DateTime.UtcNow;
     }
 
+    public void RollbackReturn()
+    {
+        if (Status != "Returned")
+            throw new InvalidOperationException("Can only rollback returned loans");
+        
+        Status = "CheckedOut";
+        ReturnDate = null;
+    }
+
     public int DaysUntilDue()
     {
         if (Status != "CheckedOut") return 0;

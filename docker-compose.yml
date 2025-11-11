@@ -68,7 +68,7 @@ services:
       - Consul__Port=8500
       - ServiceConfig__ServiceName=userservice
       - ServiceConfig__ServiceHost=userservice
-      - ServiceConfig__ServicePort=5002
+      - ServiceConfig__ServicePort=5099
       - Serilog__WriteTo__1__Args__serverUrl=http://seq:80
     networks:
       - libhub-network
